@@ -178,14 +178,22 @@ class Installation {
         }
         
         if doFiles {
-            subDir := 'v' A_AhkVersion
-            this.AddCoreFiles(subDir)
-            this.Interpreter := this.InstallDir '\' subDir '\AutoHotkey' (A_Is64bitOS ? '64' : '32') '.exe'
+            this.AddCoreFiles 'v' this.Version
+            ; Give UX its own AutoHotkey.exe for a few reasons:
+            ;  1. The Start menu shortcut needs a stable path, since pinning to taskbar creates
+            ;     a copy that won't get updated.
+            ;  2. LauncherConfigGui may store the path under HKCU, which mightn't get updated.
+            ;  3. It helps differentiate the launcher from other scripts in Task Manager.
+            ;  4. It makes the UX scripts independent from the installed interpreters.
+            this.AddFileCopy(
+                this.SourceDir '\AutoHotkey' (A_Is64bitOS ? '64' : '32') '.exe',
+                this.Interpreter := this.InstallDir '\UX\AutoHotkeyUX.exe'
+            )
+            this.AddPostAction this.UpdateV2Link
             
             this.AddUXFiles
             this.AddMiscFiles
             this.AddUninstallReg
-            this.AddPostAction this.UpdateV2Link
         }
         
         this.AddSoftwareReg
