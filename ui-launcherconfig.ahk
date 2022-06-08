@@ -29,11 +29,12 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
         
         cmd := RegRead('HKCR\AutoHotkeyScript\shell\open\command',, '')
         usingLauncher := InStr(cmd, 'UX\launcher.ahk') != 0
-        currentExe := RegExMatch(cmd, '^"(.*?)"(?= )', &m) ? m.1 : ""
-        if !usingLauncher && currentExe {
-            try if GetExeInfo(currentExe).Description = "AutoHotkey Launcher"
+        currentExe := !usingLauncher && RegExMatch(cmd, '^"(.*?)"(?= )', &m) ? m.1 : ""
+        try
+            if currentExe && GetExeInfo(currentExe).Description = "AutoHotkey Launcher" ; Support compiled launcher
                 usingLauncher := true, currentExe := ""
-        }
+        if InStr(currentExe, '\AutoHotkeyUX.exe')
+            currentExe := "" ; Don't default to AutoHotkeyUX.exe when disabling launcher
         
         versions := GetVersions()
         
@@ -69,7 +70,12 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
         .OnEvent('Click', (c, *) => ConfigWrite(c.Value, 'Launcher\v1', 'UTF8'))
         
         tab.UseTab(2)
-        this.AddEdit('vExePath xs ys w326 r1 ReadOnly', currentExe)
+        exeBox := this.AddComboBox('vExePath xs ys w326 ReadOnly')
+        this.PopulateExeList
+        if currentExe
+            exeBox.Text := currentExe
+        else if FileExist(f := ROOT_DIR '\v2\AutoHotkey' (A_Is64bitOS ? '64' : '32') '.exe')
+            exeBox.Text := f
         
         static BrowseIcon := LoadPicture("imageres.dll", 'Icon-1025 w' SysGet(49), &imgtype)
         this.AddIconButton('vBrowse x+0 yp-1 w28 hp+2', BrowseIcon, "&Browse")
@@ -107,6 +113,15 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
         this.ChangedExe()
     }
     
+    PopulateExeList() {
+        exeBox := this['ExePath']
+        Loop Files AUTOHOTKEY_EXE_PATTERN, 'R' {
+            try
+                if IsUsableAutoHotkey(f := GetExeInfo(A_LoopFileFullPath))
+                    exeBox.Add([f.Path])
+        }
+    }
+    
     ChangedMode(sourceCtrl:=false, *) {
         usingLauncher := this['UseLauncher'].Value
         this['Tab'].Choose(usingLauncher ? 1 : 2)
@@ -119,7 +134,7 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
     }
     
     ChangedExe() {
-        exe := this['ExePath'].Value
+        exe := this['ExePath'].Text
         if exe = ""
             return
         try
@@ -146,10 +161,10 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
         ConfigWrite(ctrl.Value = 3 ? '' : ctrl.Value, 'Launcher', 'Fallback')
     
     BrowseForExe(*) {
-        exe := FileSelect('3', this['ExePath'].Value, "Select an AutoHotkey.exe", "EXE Files (*.exe)")
+        exe := FileSelect('3', this['ExePath'].Text, "Select an AutoHotkey.exe", "EXE Files (*.exe)")
         if exe = ""
             return
-        this['ExePath'].Value := exe
+        this['ExePath'].Text := exe
         this.ChangedExe()
         this.UpdateVerbs()
     }
@@ -161,7 +176,7 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
             cmd := Format('"{1}" "{2}\launcher.ahk" "%1" %*', A_AhkPath, A_ScriptDir)
             appname := "AutoHotkey Launcher"
         } else {
-            exe := this['ExePath'].Value
+            exe := this['ExePath'].Text
             if exe = ""
                 return
             if !FileExist(exe)
