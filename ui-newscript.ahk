@@ -124,7 +124,7 @@ class NewScriptGui extends AutoHotkeyUxGui {
         lv := this['LV']
         if !index := lv.GetNext()
             return MsgBox("You need to select a template first.",, 'icon!')
-        t := this.Templates[lv.GetText(index)]
+        t := index = 1 ? '' : this.Templates[lv.GetText(index)]
         
         stayOpen := GetKeyState('Ctrl') || ConfigRead('New', 'StayOpen', false)
         
@@ -136,10 +136,10 @@ class NewScriptGui extends AutoHotkeyUxGui {
         while FileExist(newPath)
             newPath := dir "\" basename "-" A_Index ".ahk"
         
-        if t.execute
+        if t && t.execute
             RunWait Format('"{1}" "{2}" {3}', t.path, newPath, btn.Name), dir
         else {
-            code := t.path = '' ? '' : FileRead(t.path)
+            code := t = '' ? '' : FileRead(t.path)
             code := RegExReplace(code, 'si)/\*\s+\[NewScriptTemplate\].*\*/\R?')
             FileOpen(newPath, 'w', 'UTF-8').Write(code)
         }
