@@ -237,6 +237,8 @@ class Installation {
         if !files.Count
             this.GetConfirmation("Installation data missing. Files will not be deleted.", 'x')
         
+        this.ElevateIfNeeded
+        
         ; Close scripts and help files
         this.PreUninstallChecks()
         
