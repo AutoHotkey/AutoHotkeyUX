@@ -196,6 +196,8 @@ class Installation {
             this.AddUninstallReg
         }
         
+        this.AddPostAction this.CreateWindowSpyRedirect
+        
         this.AddSoftwareReg
         this.AddFileTypeReg
         
@@ -419,7 +421,7 @@ class Installation {
     
     AddCoreFiles(destSubDir) {
         this.AddFiles(this.SourceDir, destSubDir
-            , 'AutoHotkey*.exe', 'AutoHotkey.chm', 'WindowSpy.ahk')
+            , 'AutoHotkey*.exe', 'AutoHotkey.chm')
         
         ; Queue creation of UIA executable files
         if A_IsAdmin && this.IsTrustedLocation(this.InstallDir)
@@ -441,6 +443,7 @@ class Installation {
         this.AddFiles(A_ScriptDir, 'UX', '*.ahk')
         this.AddFiles(A_ScriptDir, 'UX\inc', 'inc\*.ahk')
         this.AddFiles(A_ScriptDir '\Templates', 'UX\Templates', '*.ahk')
+        this.AddFiles(this.SourceDir, 'UX', 'WindowSpy.ahk')
         this.AddPostAction this.CreateStartShortcut
     }
     
@@ -637,6 +640,24 @@ class Installation {
         DllCall('CreateSymbolicLink', 'str', link, 'str', 'v' this.Version, 'uint', 1) ; SYMBOLIC_LINK_FLAG_DIRECTORY = 1
     }
     
+    CreateWindowSpyRedirect() {
+        ; Permit overwrite only when upgrading a legacy v1 installation,
+        ; or if it is known to have been created by us.
+        if !FileExist('WindowSpy.ahk') || this.HasOwnProp('SoftwareKeyV1')
+            || this.Hashes.Get('WindowSpy.ahk', {Hash: ''}).Hash = HashFile('WindowSpy.ahk') {
+            FileOpen('WindowSpy.ahk', 'w').Write('
+            (
+                #include UX
+                #include inc\bounce-v1.ahk
+                /**/
+                #requires AutoHotkey v2.0-beta.3
+                try Run('"' A_MyDocuments '\AutoHotkey\WindowSpy.ahk"'), ExitApp()
+                #include WindowSpy.ahk
+            )')
+            this.AddFileHash('WindowSpy.ahk', this.Version)
+        }
+    }
+    
     CreateStartShortcut() {
         CreateAppShortcut(
             lnk := this.StartShortcut,
@@ -685,8 +706,7 @@ class Installation {
         ; Record these for Uninstall
         add 'AutoHotkey{1}.exe', '', 'A32', 'U32', 'U64', 'A32_UIA', 'U32_UIA', 'U64_UIA'
         add 'Compiler\{1}.bin', 'ANSI 32-bit', 'Unicode 32-bit', 'Unicode 64-bit', 'AutoHotkeySC'
-        add '{1}', 'Compiler\Ahk2Exe.exe', 'WindowSpy.ahk', 'AutoHotkey.chm'
-                 , A_WinDir '\ShellNew\Template.ahk'
+        add '{1}', 'Compiler\Ahk2Exe.exe', 'AutoHotkey.chm', A_WinDir '\ShellNew\Template.ahk'
         
         add(fmt, patterns*) {
             for p in patterns
