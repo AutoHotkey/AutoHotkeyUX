@@ -7,6 +7,9 @@ AHK2EXE_PATH := ROOT_DIR "\Compiler\Ahk2Exe.exe"
 AHK_PROGID := "AutoHotkeyScript"
 SCRIPT_FILES_FILTER := "Script Files (*.ahk)"
 
+if !RegRead('HKCU\Software\AutoHotkey', 'Trace', false)
+    trace.DefineProp 'call', {call: (*) => ''}
+
 #include config.ahk
 
 trace(s) {
