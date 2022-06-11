@@ -445,7 +445,6 @@ class Installation {
         this.AddFiles(A_ScriptDir, 'UX', '*.ahk')
         this.AddFiles(A_ScriptDir, 'UX\inc', 'inc\*.ahk')
         this.AddFiles(A_ScriptDir '\Templates', 'UX\Templates', '*.ahk')
-        this.AddFiles(this.SourceDir, 'UX', 'WindowSpy.ahk')
         this.AddPostAction this.CreateStartShortcut
     }
     
