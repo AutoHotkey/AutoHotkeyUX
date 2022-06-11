@@ -4,6 +4,8 @@
 ; Double-click a list item to show how each line-group is matched.
 #requires AutoHotkey v2.0-beta.3
 
+#NoTrayIcon
+
 #include ..\inc\identify.ahk
 
 class IdentifyGui extends Gui {

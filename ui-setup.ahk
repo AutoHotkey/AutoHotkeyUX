@@ -2,6 +2,8 @@
 ; It is not intended for use after installation.
 #requires AutoHotkey v2.0-beta.3
 
+#NoTrayIcon
+
 #include inc\ui-base.ahk
 
 A_ScriptName := "AutoHotkey Setup"

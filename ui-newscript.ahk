@@ -1,5 +1,7 @@
 #requires AutoHotkey v2.0-beta.4-
 
+#NoTrayIcon
+
 #include inc\common.ahk
 #include inc\ui-base.ahk
 

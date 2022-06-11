@@ -1,6 +1,8 @@
 ; This script shows a GUI for setting the default .ahk editor.
 #requires AutoHotkey v2.0-beta.3
 
+#NoTrayIcon
+
 #include inc\common.ahk
 #include inc\launcher-common.ahk
 #include inc\ui-base.ahk

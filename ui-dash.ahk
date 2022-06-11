@@ -4,6 +4,8 @@
 /* v1 stops here */
 #requires AutoHotkey v2.0-beta.3
 
+#NoTrayIcon
+
 #include inc\ui-base.ahk
 #include ui-launcherconfig.ahk
 #include ui-editor.ahk

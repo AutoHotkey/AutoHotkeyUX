@@ -5,6 +5,7 @@
 
 ;@Ahk2Exe-SetDescription AutoHotkey Launcher
 #SingleInstance Off
+#NoTrayIcon
 
 #include inc\identify.ahk
 #include inc\common.ahk
