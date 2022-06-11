@@ -77,7 +77,7 @@ class NewScriptGui extends AutoHotkeyUxGui {
     }
     
     Browse(*) {
-        path := FileSelect('S', this['Dir'].Value "\" this['Name'].Value, this.Title, SCRIPT_FILES_FILTER)
+        path := this.FileSelect('S', this['Dir'].Value "\" this['Name'].Value, this.Title, SCRIPT_FILES_FILTER)
         if path = ""
             return
         SplitPath path, &name, &dir

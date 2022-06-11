@@ -19,7 +19,9 @@ class IdentifyGui extends Gui {
         lv.OnEvent('DoubleClick', 'ChooseFile')
     }
     Browse(*) {
+        this.Opt '+OwnDialogs'
         path := FileSelect('D3')
+        this.Opt '-OwnDialogs'
         if path = ''
             return
         this['Path'].Value := path

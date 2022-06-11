@@ -38,7 +38,7 @@ class EditorSelectionGui extends AutoHotkeyUxGui {
     }
     
     Browse(*) {
-        app := FileSelect(3,,, "Apps (*.exe; *.ahk)")
+        app := this.FileSelect(3,,, "Apps (*.exe; *.ahk)")
         if app = ""
             return
         SplitPath app,,, &ext

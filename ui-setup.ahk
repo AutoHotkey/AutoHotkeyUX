@@ -58,8 +58,7 @@ class InstallGui extends AutoHotkeyUxGui {
     }
     
     Browse(*) {
-        this.Opt('OwnDialogs')
-        dir := FileSelect('D', this['InstallDir'].Value '\', "Select installation directory")
+        dir := this.FileSelect('D', this['InstallDir'].Value '\', "Select installation directory")
         if dir != '' {
             this['InstallDir'].Value := dir
             this.InstallDirChange()

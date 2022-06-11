@@ -42,6 +42,14 @@ class AutoHotkeyUxGui extends Gui {
         return btn
     }
     
+    FileSelect(p*) {
+        this.Opt '+OwnDialogs'
+        try
+            return FileSelect(p*)
+        finally
+            this.Opt '-OwnDialogs'
+    }
+    
     static Show(p*) {
         for w in WinGetList('ahk_pid ' ProcessExist())
             if (g := GuiFromHwnd(w)) && g.base = this.Prototype

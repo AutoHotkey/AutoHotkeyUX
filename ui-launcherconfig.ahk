@@ -151,7 +151,7 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
         ConfigWrite(ctrl.Value = 3 ? '' : ctrl.Value, 'Launcher', 'Fallback')
     
     BrowseForExe(*) {
-        exe := FileSelect('3', this['ExePath'].Text, "Select an AutoHotkey.exe", "EXE Files (*.exe)")
+        exe := this.FileSelect('3', this['ExePath'].Text, "Select an AutoHotkey.exe", "EXE Files (*.exe)")
         if exe = ""
             return
         this['ExePath'].Text := exe
