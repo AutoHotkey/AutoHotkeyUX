@@ -70,8 +70,7 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
         .OnEvent('Click', (c, *) => ConfigWrite(c.Value, 'Launcher\v1', 'UTF8'))
         
         tab.UseTab(2)
-        exeBox := this.AddComboBox('vExePath xs ys w326 ReadOnly')
-        this.PopulateExeList
+        exeBox := this.AddEdit('vExePath xs ys w326 ReadOnly')
         if currentExe
             exeBox.Text := currentExe
         else if FileExist(f := ROOT_DIR '\v2\AutoHotkey' (A_Is64bitOS ? '64' : '32') '.exe')
@@ -111,15 +110,6 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
         
         this.ChangedMode()
         this.ChangedExe()
-    }
-    
-    PopulateExeList() {
-        exeBox := this['ExePath']
-        Loop Files AUTOHOTKEY_EXE_PATTERN, 'R' {
-            try
-                if IsUsableAutoHotkey(f := GetExeInfo(A_LoopFileFullPath))
-                    exeBox.Add([f.Path])
-        }
     }
     
     ChangedMode(sourceCtrl:=false, *) {
