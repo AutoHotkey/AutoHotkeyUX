@@ -608,7 +608,7 @@ class Installation {
             ; Version information must be provided by the file at this.HashesPath:
             ux.Version := this.Hashes['UX\install.ahk'].Version
             ; Interpreter must be located at the path calculated below:
-            interpreter := this.InstallDir '\v' ux.Version '\AutoHotkey' (A_Is64bitOS ? '64' : '32') '.exe'
+            interpreter := this.InstallDir '\UX\AutoHotkeyUX.exe'
             if FileExist(interpreter) {
                 ; Additional interpreters must be installable with this command line:
                 ux.InstallCommand := Format('"{1}" "{2}\UX\install.ahk" /install "%1"'
