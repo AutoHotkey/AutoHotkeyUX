@@ -187,8 +187,9 @@ class Installation {
             ;  4. It makes the UX scripts independent from the installed interpreters.
             this.AddFileCopy(
                 this.SourceDir '\AutoHotkey' (A_Is64bitOS ? '64' : '32') '.exe',
-                this.Interpreter := this.InstallDir '\UX\AutoHotkeyUX.exe'
+                'UX\AutoHotkeyUX.exe' ; Must be relative.
             )
+            this.Interpreter := this.InstallDir '\UX\AutoHotkeyUX.exe'
             this.AddPostAction this.UpdateV2Link
             
             this.AddUXFiles
