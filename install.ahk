@@ -304,7 +304,6 @@ class Installation {
                 'del "' postponed '" & '
                 'cd %TEMP% & '
                 'rmdir "' postponed '\.." & '
-                'dir "' postponed '\.." & '
                 'rmdir "' A_WorkingDir '"'
                 '"',, 'Hide')
         }
