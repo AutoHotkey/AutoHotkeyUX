@@ -2,6 +2,7 @@
 #requires AutoHotkey v2.0-beta.3
 
 #NoTrayIcon
+#SingleInstance Off
 
 #include inc\common.ahk
 #include inc\launcher-common.ahk

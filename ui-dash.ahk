@@ -5,6 +5,7 @@
 #requires AutoHotkey v2.0-beta.3
 
 #NoTrayIcon
+#SingleInstance Force
 
 #include inc\ui-base.ahk
 #include ui-launcherconfig.ahk
