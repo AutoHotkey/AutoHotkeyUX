@@ -177,6 +177,9 @@ class Installation {
             this.AddPreAction this.UpgradeV1
         }
         
+        if doFiles || FileExist(this.InstallDir '\UX\AutoHotkeyUX.exe')
+            this.Interpreter := this.InstallDir '\UX\AutoHotkeyUX.exe'
+        
         if doFiles {
             this.AddCoreFiles 'v' this.Version
             ; Give UX its own AutoHotkey.exe for a few reasons:
@@ -189,16 +192,15 @@ class Installation {
             dstExe := this.InstallDir '\UX\AutoHotkeyUX.exe'
             if FileExist(srcExe) || (!FileExist(dstExe) && (srcExe := A_AhkPath))
                 this.AddFileCopy srcExe, 'UX\AutoHotkeyUX.exe' ; Must be relative
-            this.Interpreter := this.InstallDir '\UX\AutoHotkeyUX.exe'
             this.AddPostAction this.UpdateV2Link
             
             this.AddUXFiles
             this.AddMiscFiles
-            this.AddUninstallReg
         }
         
         this.AddPostAction this.CreateWindowSpyRedirect
         
+        this.AddUninstallReg
         this.AddSoftwareReg
         this.AddFileTypeReg
         
