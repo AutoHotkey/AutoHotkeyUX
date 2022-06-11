@@ -333,6 +333,8 @@ class Installation {
         unknownFiles := ''
         modifiedFiles := ''
         hashes := this.Hashes
+        if (item := hashes.Get(this.InstallDir '\UX\AutoHotkeyUX.exe', false)) ; Erroneous entry by v2.0-beta.4
+            hashes.Delete(item.Path), hashes[item.Path := 'UX\AutoHotkeyUX.exe'] := item ; Make it relative
         for item in this.FileItems {
             if attrib := FileExist(item.Dest) {
                 if InStr(attrib, 'D') {
