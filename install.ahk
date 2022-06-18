@@ -26,6 +26,8 @@ Install_Main() {
                 method := 'Uninstall'
             case '/to':
                 inst.InstallDir := A_Args[++A_Index]
+            case '/elevate':
+                inst.RequireAdmin := true
             default:
                 MsgBox 'Invalid arg "' A_Args[A_Index] '"', inst.DialogTitle, "Iconx"
                 ExitApp 1
@@ -157,7 +159,7 @@ class Installation {
     }
     
     ElevateIfNeeded() {
-        if !A_IsAdmin && !this.UserInstall {
+        if !A_IsAdmin && (!this.UserInstall || this.HasProp('RequireAdmin')) {
             try Run '*runas ' DllCall('GetCommandLine', 'str')
             ExitApp
         }
@@ -483,10 +485,11 @@ class Installation {
     }
     
     AddUninstallReg() {
+        unstr := this.CmdStr('UX\install.ahk', '/uninstall' ((A_IsAdmin && this.UserInstall) ? ' /elevate' : ''))
         this.AddRegValues(this.UninstallKey, [
             {ValueName: 'DisplayName',          Value: this.ProductName (this.RootKey = 'HKCU' ? " (user)" : "")},
-            {ValueName: 'UninstallString',      Value: this.CmdStr('UX\install.ahk', '/uninstall')},
-            {ValueName: 'QuietUninstallString', Value: this.CmdStr('UX\install.ahk', '/uninstall')},
+            {ValueName: 'UninstallString',      Value: unstr},
+            {ValueName: 'QuietUninstallString', Value: unstr},
             ; TODO: implement maintenance GUI
             {ValueName: 'NoModify',             Value: 1},
             {ValueName: 'DisplayIcon',          Value: this.Interpreter},
