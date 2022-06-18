@@ -15,18 +15,23 @@ if A_LineFile = A_ScriptFullPath
 
 Install_Main() {
     try {
-        if !A_Args.Length {
-            Installation().InstallFull() ; Re-registration mode
-            ExitApp
-        }
-        switch A_Args[1] {
+        inst := Installation()
+        method := 'InstallFull'
+        while A_Index <= A_Args.Length {
+            switch A_Args[A_Index], 'off' {
             case '/install':
-                Installation(A_Args[2]).InstallExtraVersion()
+                method := 'InstallExtraVersion'
+                inst.SourceDir := A_Args[++A_Index]
             case '/uninstall':
-                Installation().Uninstall()
+                method := 'Uninstall'
             case '/to':
-                Installation(, A_Args[2]).InstallFull()
+                inst.InstallDir := A_Args[++A_Index]
+            default:
+                MsgBox 'Invalid arg "' A_Args[A_Index] '"', inst.DialogTitle, "Iconx"
+                ExitApp 1
+            }
         }
+        inst.%method%()
     }
     catch as e {
         MsgBox type(e) ": " e.Message "`n`n" (e.Extra = "" ? "" : "Specifically: " e.Extra)
@@ -62,9 +67,11 @@ class Installation {
     PreAction       := [] ; [Callback(this)]
     PostAction      := [] ; [Callback(this)]
     
-    __new(sourceDir:=unset, installDir:=unset) {
-        ; Resolve installation directory
-        IsSet(installDir) ? DirCreate(installDir) : (installDir := A_ScriptDir '\..')
+    ResolveInstallDir() {
+        if this.HasProp('InstallDir')
+            DirCreate installDir := this.InstallDir
+        else
+            installDir := A_ScriptDir '\..'
         Loop Files installDir, 'D'
             this.InstallDir := installDir := A_LoopFileFullPath
         else
@@ -75,11 +82,15 @@ class Installation {
             if RegRead(rootKey '\' this.SoftwareSubKey, 'InstallDir', '') = installDir
                 this.UserInstall := rootKey = 'HKCU'
         }
-        ; Resolve source directory
-        Loop Files IsSet(sourceDir) ? sourceDir : A_ScriptDir '\..', 'D'
+    }
+    
+    ResolveSourceDir() {
+        if !this.HasProp('SourceDir')
+            this.SourceDir := A_ScriptDir '\..'
+        Loop Files this.SourceDir, 'D'
             this.SourceDir := A_LoopFileFullPath
         else
-            throw ValueError("Invalid source directory",, sourceDir)
+            throw ValueError("Invalid source directory",, this.SourceDir)
     }
     
     HashesPath => this.InstallDir '\UX\installed-files.csv'
@@ -157,6 +168,9 @@ class Installation {
     InstallFull() {
         SetRegView 64
         
+        this.ResolveInstallDir
+        this.ResolveSourceDir
+        
         this.ElevateIfNeeded
         
         doFiles := this.InstallDir != this.SourceDir
@@ -217,6 +231,9 @@ class Installation {
     InstallExtraVersion() {
         SetRegView 64
         
+        this.ResolveInstallDir
+        this.ResolveSourceDir
+        
         Loop Files this.SourceDir '\AutoHotkey*.exe' {
             exe := GetExeInfo(A_LoopFilePath)
             break
@@ -243,6 +260,8 @@ class Installation {
     ;{ Uninstallation
     
     Uninstall() {
+        this.ResolveInstallDir
+        
         files := this.Hashes
         if !files.Count
             this.GetConfirmation("Installation data missing. Files will not be deleted.", 'x')

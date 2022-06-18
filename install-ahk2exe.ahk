@@ -15,7 +15,8 @@ InstallAhk2Exe() {
     }
     
     ; Init early for detection of user vs. admin install
-    inst := Installation(A_ScriptDir '\..')
+    inst := Installation()
+    inst.ResolveInstallDir()
     
     if !A_Args.Length {
         (inst.UserInstall) || SetTimer(() => (
