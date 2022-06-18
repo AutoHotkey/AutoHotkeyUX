@@ -113,8 +113,13 @@ class Installation {
                 FileCopy item.Source, item.Dest, true
             catch
                 MsgBox 'Copy failed`nsource: ' item.Source '`ndest: ' item.Dest
-            else
+            else {
+                ; If source files were extracted from a zip, they may have a Zone.Identifier
+                ; stream identifying them as coming from the Internet. These must be deleted
+                ; to prevent warnings when the user runs the installed files.
+                try FileDelete item.Dest ":Zone.Identifier"
                 this.AddFileHash(item.Dest, this.Version)
+            }
         }
         
         ; Install registry settings
