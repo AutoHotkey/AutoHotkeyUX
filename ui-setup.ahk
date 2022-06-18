@@ -130,7 +130,9 @@ class InstallGui extends AutoHotkeyUxGui {
         if problem && MsgBox(problem,, 'OKCancel Default2 Icon!') = 'Cancel'
             return
         cmd := Format('"{1}" /script "{2}\install.ahk" /to "{3}"', A_AhkPath, A_ScriptDir, installDir)
-        if requireAdmin && !A_IsAdmin
+        if !requireAdmin
+            cmd .= ' /user'
+        else if !A_IsAdmin
             cmd := '*RunAs ' cmd
         try
             Run cmd,,, &pid

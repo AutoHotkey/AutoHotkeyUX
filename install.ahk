@@ -28,6 +28,8 @@ Install_Main() {
                 inst.InstallDir := A_Args[++A_Index]
             case '/elevate':
                 inst.RequireAdmin := true
+            case '/user':
+                inst.UserInstall := true
             default:
                 MsgBox 'Invalid arg "' A_Args[A_Index] '"', inst.DialogTitle, "Iconx"
                 ExitApp 1
