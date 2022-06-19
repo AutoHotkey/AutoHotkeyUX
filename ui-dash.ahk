@@ -86,13 +86,7 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
         case "Launch":
             LauncherConfigGui.Show()
         case "Editor":
-            EditorSelectionGui.Show(getEditor(), setEditor)
-            getEditor() {
-                return RegRead("HKCR\" AHK_PROGID "\shell\edit\command",, "")
-            }
-            setEditor(ui, ed) {
-                RegWrite(ed, "REG_SZ", "HKCU\Software\Classes\" AHK_PROGID "\shell\edit\command")
-            }
+            DefaultEditorGui.Show()
         }
     }
     

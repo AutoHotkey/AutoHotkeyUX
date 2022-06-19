@@ -10,10 +10,8 @@
 #include inc\CommandLineToArgs.ahk
 
 class EditorSelectionGui extends AutoHotkeyUxGui {
-    __new(cmdLine, onConfirm) {
+    __new(cmdLine) {
         super.__new("Select an editor")
-        
-        this.OnConfirm := onConfirm
         
         lv := this.AddListMenu('vEds LV0x40 w300', ["Editor"])
         this.IconList := il := IL_Create(,, true)
@@ -105,6 +103,23 @@ class EditorSelectionGui extends AutoHotkeyUxGui {
     }
 }
 
+class DefaultEditorGui extends EditorSelectionGui {
+    __new(scriptToEdit:=unset) {
+        cmd := RegRead('HKCR\' AHK_PROGID '\shell\edit\command',, '')
+        if InStr(cmd, A_LineFile)
+            cmd := ''
+        super.__new(cmd)
+        if IsSet(scriptToEdit)
+            this.ScriptToEdit := scriptToEdit
+    }
+    
+    OnConfirm(cmd) {
+        RegWrite(cmd, 'REG_SZ', 'HKCU\Software\Classes\' AHK_PROGID '\shell\edit\command')
+        if this.HasProp('ScriptToEdit')
+            Run('edit "' this.ScriptToEdit '"')
+    }
+}
+
 GetEditorApps() {
     apps := []
     apps.byName := Map(), apps.byName.CaseSense := 'off'
@@ -190,14 +205,4 @@ AssocQueryString(flags, strtype, assoc) {
 }
 
 if A_LineFile = A_ScriptFullPath
-    InvokeEditorSelection()
-
-InvokeEditorSelection() {
-    cmd := RegRead("HKCR\" AHK_PROGID "\shell\edit\command",, "")
-    if InStr(cmd, A_LineFile)
-        cmd := ""
-    EditorSelectionGui(cmd, (ed, cmd) => (
-        RegWrite(cmd, "REG_SZ", "HKCU\Software\Classes\" AHK_PROGID "\shell\edit\command"),
-        A_Args.Length && Run('edit "' A_Args[1] '"')
-    )).Show()   
-}
+    DefaultEditorGui.Show(A_Args*)
