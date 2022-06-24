@@ -525,7 +525,7 @@ class Installation {
         this.AddVerb('Open', 'UX\launcher.ahk', '"%1" %*', "Run script",
             aumid
         )
-        this.AddVerb('RunAs', 'UX\launcher.ahk', '"%1" %*', "Run as administrator",
+        this.AddVerb('RunAs', 'UX\launcher.ahk', '"%1" %*',
             aumid, {ValueName: 'HasLUAShield', Value: ""}
         )
         if A_IsAdmin && this.IsTrustedLocation(this.InstallDir) {
