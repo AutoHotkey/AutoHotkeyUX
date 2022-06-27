@@ -511,6 +511,7 @@ class Installation {
         ])
         this.AddRegValues(this.FileTypeKey, [
             {Value: "AutoHotkey Script"},
+            {ValueName: 'AppUserModelID', Value: this.AppUserModelID}, ; Testing produced inconsistent results, but it seems sometimes this must be here, sometimes under the verb.
             {Key: 'DefaultIcon', Value: this.Interpreter ",1"},
             {Key: 'Shell', Value: 'Open runas UIAccess Edit'}, ; Including 'runas' in lower-case fixes the shield icon not appearing on Windows 11.
             {Key: 'Shell\Open', ValueName: 'FriendlyAppName', Value: 'AutoHotkey Launcher'},
