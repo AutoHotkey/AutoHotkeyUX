@@ -62,6 +62,7 @@ class Installation {
     FileTypeKey     => this.ClassesKey '\' this.ScriptProgId
     UninstallKey    => this.RootKey '\Software\Microsoft\Windows\CurrentVersion\Uninstall\AutoHotkey'
     StartShortcut   => (this.UserInstall ? A_Programs : A_ProgramsCommon) '\AutoHotkey.lnk'
+    UninstallCmd    => this.CmdStr('UX\install.ahk', '/uninstall' ((A_IsAdmin && this.UserInstall) ? ' /elevate' : ''))
     
     DialogTitle     => this.ProductName " Setup"
     
@@ -487,7 +488,7 @@ class Installation {
     }
     
     AddUninstallReg() {
-        unstr := this.CmdStr('UX\install.ahk', '/uninstall' ((A_IsAdmin && this.UserInstall) ? ' /elevate' : ''))
+        unstr := this.UninstallCmd
         this.AddRegValues(this.UninstallKey, [
             {ValueName: 'DisplayName',          Value: this.ProductName (this.RootKey = 'HKCU' ? " (user)" : "")},
             {ValueName: 'UninstallString',      Value: unstr},
@@ -697,7 +698,8 @@ class Installation {
             this.Interpreter,
             Format('"{1}\UX\ui-dash.ahk"', this.InstallDir),
             "AutoHotkey Dash",
-            this.AppUserModelID
+            this.AppUserModelID,
+            this.UninstallCmd
         )
         this.AddFileHash lnk, this.Version
     }
