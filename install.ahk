@@ -670,8 +670,10 @@ class Installation {
     UpdateV2Link() {
         ; Create a stable path for the current v2 directory
         ; (if a symbolic link can be created)
+        this.DeleteLink link2 := this.InstallDir '\v2\AutoHotkey.exe'
         this.DeleteLink link := this.InstallDir '\v2'
         DllCall('CreateSymbolicLink', 'str', link, 'str', 'v' this.Version, 'uint', 1) ; SYMBOLIC_LINK_FLAG_DIRECTORY = 1
+        DllCall('CreateSymbolicLink', 'str', link2, 'str', 'AutoHotkey' (A_Is64bitOS ? '64' : '32') '.exe', 'uint', 0)
     }
     
     CreateWindowSpyRedirect() {
