@@ -67,13 +67,37 @@ IdentifyAndLaunch(ScriptPath, args, switches) {
     else {
         exe := GetRequiredOrPreferredExe(v)
     }
+    if !exe
+        exe := TryToInstallVersion(v, i.v ? i.r : '', ScriptPath)
     if exe {
         if GetMajor(exe.Version) = 1 && ConfigRead('Launcher\v1', 'UTF8', false)
             switches.InsertAt(1, '/CP65001')
         ExitApp LaunchScript(exe.Path, ScriptPath, args, switches).exitCode
     }
-    MsgBox 'This script requires AutoHotkey v' v ', which was not found.'
     ExitApp 2
+}
+
+TryToInstallVersion(v, r, ScriptPath) {
+    SplitPath ScriptPath, &name
+    m := ' script you are trying to run requires AutoHotkey v' v ', which is not installed.`n`nScript:`t' name
+    m := !(r && r != '#Requires') ? 'The' m : 'It looks like the' m '`nRule:`t' r
+    if downloadable := IsNumber(v) || VerCompare(v, '1.1.24.02') >= 0 {
+        ; Get current version compatible with v.
+        bv := v = 1 ? '1.1' : IsInteger(v) ? v '.0' : RegExReplace(v, '^\d+(?:\.\d+)?\b\K.*')
+        req := ComObject('Msxml2.XMLHTTP')
+        req.open('GET', Format('https://www.autohotkey.com/download/{}/version.txt', bv), false)
+        req.send()
+        if req.status = 200 && RegExMatch(cv := req.responseText, '^\d+\.[\w\+\-\.]+$') && VerCompare(cv, v) >= 0
+            m .= '`n`nWe can try to download and install AutoHotkey v' cv ' for you, while retaining the ability to use the versions already installed.`n`nDownload and install AutoHotkey v' cv '?'
+        else
+            downloadable := false
+    }
+    ; TODO: detect admin requirement and apply UAC icon
+    if MsgBox(m, 'AutoHotkey', downloadable ? 'Iconi y/n' : 'Icon!') != 'yes'
+        return false
+    if RunWait(Format('"{}" /script "{}\install-version.ahk" "{}"', A_AhkPath, A_ScriptDir, cv)) != 0
+        return false
+    return exe := GetRequiredOrPreferredExe(v)
 }
 
 GetRequiredOrPreferredExe(v) {
