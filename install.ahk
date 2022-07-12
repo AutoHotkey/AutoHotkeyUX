@@ -469,7 +469,7 @@ class Installation {
             , 'AutoHotkey*.exe', 'AutoHotkey.chm')
         
         ; Queue creation of UIA executable files
-        if A_IsAdmin && this.IsTrustedLocation(this.InstallDir)
+        if A_IsAdmin && this.IsTrustedLocation(this.InstallDir) && VerCompare(this.Version, '1.1.19') >= 0
             Loop Files this.SourceDir '\AutoHotkey*.exe'
                 this.AddPostAction this.MakeUIA.Bind(, destSubDir '\' A_LoopFileName)
     }
