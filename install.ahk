@@ -73,7 +73,7 @@ class Installation {
     PostAction      := [] ; [Callback(this)]
     
     ResolveInstallDir() {
-        if this.HasProp('InstallDir')
+        if hadInstallDir := this.HasProp('InstallDir')
             DirCreate installDir := this.InstallDir
         else
             installDir := A_ScriptDir '\..'
@@ -81,11 +81,23 @@ class Installation {
             this.InstallDir := installDir := A_LoopFileFullPath
         else
             throw ValueError("Invalid target directory",, installDir)
-        ; Override installation mode if already installed here
         SetRegView 64
-        for rootKey in ['HKLM', 'HKCU'] {
-            if RegRead(rootKey '\' this.SoftwareSubKey, 'InstallDir', '') = installDir
-                this.UserInstall := rootKey = 'HKCU'
+        installDirs := []
+        for rootKey in ['HKLM', 'HKCU']
+            installDirs.Push RegRead(rootKey '\' this.SoftwareSubKey, 'InstallDir', '')
+        ; Override installation mode if already installed here
+        if installDirs[1] = installDir
+            this.UserInstall := false
+        else if installDirs[2] = installDir
+            this.UserInstall := true
+        ; If this.InstallDir wasn't set upon entry to this method...
+        else if !hadInstallDir {
+            ; Default to the location of an existing installation matching this.UserInstall
+            if installDirs[this.UserInstall?2:1]
+                this.InstallDir := installDirs[this.UserInstall?2:1]
+            ; Default to the location and mode of any other existing installation
+            else if installDirs[this.UserInstall?1:2]
+                this.InstallDir := installDirs[this.UserInstall?1:2], this.UserInstall := !this.UserInstall
         }
     }
     
