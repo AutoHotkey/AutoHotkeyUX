@@ -99,7 +99,7 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
         Loop 2 {
             section := 'Launcher\v' A_Index
             v := ConfigRead(section, 'Version', '')
-            try this['Version' A_Index].Text := "v" v
+            try this['Version' A_Index].Text := v || 'Latest ' A_Index '.x'
             try this['Build' A_Index].Text := ConfigRead(section, 'Build', '')
             try this['UIA' A_Index].Value := ConfigRead(section, 'UIA', false)
             if this['Build' A_Index].Text = ""
