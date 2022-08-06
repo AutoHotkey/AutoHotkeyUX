@@ -26,7 +26,7 @@ InstallAhk2Exe() {
         if MsgBox("Ahk2Exe is not installed, but we can download and install it for you.", "AutoHotkey", 'OkCancel') = 'Cancel'
             ExitApp
         if !A_IsAdmin && !inst.UserInstall {
-            Run Format('*RunAs "{1}" /reload /script "{2}" /Y', A_AhkPath, A_ScriptFullPath)
+            Run Format('*RunAs "{1}" /restart /script "{2}" /Y', A_AhkPath, A_ScriptFullPath)
             ExitApp
         }
     }
