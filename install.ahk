@@ -466,7 +466,9 @@ class Installation {
     
     AddCoreFiles(destSubDir) {
         this.AddFiles(this.SourceDir, destSubDir
-            , 'AutoHotkey*.exe', 'AutoHotkey.chm')
+            , 'AutoHotkey*.exe', 'AutoHotkey.chm'
+            , 'Compiler\*.bin' ; Legacy base files for compiler - even if Ahk2Exe is not installed yet.
+        )
         
         ; Queue creation of UIA executable files
         if A_IsAdmin && this.IsTrustedLocation(this.InstallDir) && VerCompare(this.Version, '1.1.19') >= 0
