@@ -8,15 +8,14 @@
 InstallAhk2Exe
 
 InstallAhk2Exe() {
-    finalPath := A_ScriptDir '\..\Compiler\Ahk2Exe.exe'
+    inst := Installation()
+    inst.ResolveInstallDir()  ; This sets inst.InstallDir and inst.UserInstall
+    
+    finalPath := inst.InstallDir '\Compiler\Ahk2Exe.exe'
     if FileExist(finalPath) {
         Run finalPath
         ExitApp
     }
-    
-    ; Init early for detection of user vs. admin install
-    inst := Installation()
-    inst.ResolveInstallDir()
     
     if !A_Args.Length {
         (inst.UserInstall) || SetTimer(() => (
