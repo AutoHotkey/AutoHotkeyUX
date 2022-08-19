@@ -102,8 +102,12 @@ class Installation {
     }
     
     ResolveSourceDir() {
-        if !this.HasProp('SourceDir')
-            this.SourceDir := A_ScriptDir '\..'
+        if !this.HasProp('SourceDir') {
+            if A_IsCompiled && IsSet(UnpackFiles)
+                this.SourceDir := UnpackFiles(this.InstallDir)
+            else
+                this.SourceDir := A_ScriptDir '\..'
+        }
         Loop Files this.SourceDir, 'D'
             this.SourceDir := A_LoopFileFullPath
         else
@@ -487,9 +491,9 @@ class Installation {
     }
     
     AddUXFiles() {
-        this.AddFiles(A_ScriptDir, 'UX', '*.ahk')
-        this.AddFiles(A_ScriptDir, 'UX\inc', 'inc\*.ahk')
-        this.AddFiles(A_ScriptDir '\Templates', 'UX\Templates', '*.ahk')
+        this.AddFiles(this.SourceDir '\UX', 'UX', '*.ahk')
+        this.AddFiles(this.SourceDir '\UX', 'UX\inc', 'inc\*.ahk')
+        this.AddFiles(this.SourceDir '\UX\Templates', 'UX\Templates', '*.ahk')
         this.AddPostAction this.CreateStartShortcut
     }
     

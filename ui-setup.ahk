@@ -129,7 +129,10 @@ class InstallGui extends AutoHotkeyUxGui {
             problem .= 'Enabling UI Access will not be possible because the installation directory is not a sub-directory of Program Files. Without UI Access, non-elevated scripts cannot interact with windows of elevated programs.`n`n'
         if problem && MsgBox(problem,, 'OKCancel Default2 Icon!') = 'Cancel'
             return
-        cmd := Format('"{1}" /script "{2}\install.ahk" /to "{3}"', A_AhkPath, A_ScriptDir, installDir)
+        if A_IsCompiled && IsSet(Installation)
+            cmd := Format('"{1}" /to "{2}"', A_ScriptFullPath, installDir)
+        else
+            cmd := Format('"{1}" /script "{2}\install.ahk" /to "{3}"', A_AhkPath, A_ScriptDir, installDir)
         if !requireAdmin
             cmd .= ' /user'
         else if !A_IsAdmin
