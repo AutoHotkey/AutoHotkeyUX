@@ -339,8 +339,10 @@ class Installation {
                 . modified, this.DialogTitle, "Iconi")
         }
         FileDelete this.HashesPath
-        for dir in StrSplit(Sort(RTrim(dirs, "`n"), 'UR'), "`n")
+        for dir in StrSplit(Sort(RTrim(dirs, "`n"), 'UR'), "`n") {
+            this.DeleteLink dir '\AutoHotkey.exe'    
             try DirDelete dir, false
+        }
         
         this.DeleteLink this.InstallDir '\v2'
         
