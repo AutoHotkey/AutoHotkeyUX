@@ -234,13 +234,13 @@ classification_regex := (
         ')'
         '(?<v1_cont>'
             '(?&tosol)' alt(
-                '(?&solcont)(?&exp)',
+                '(?&solcont)(?&subexp)',  ; Not &exp, as the "caller" of &v1_cont may need to handle ",".
                 ws0 ',' ws0 '(?=%)(?&pct)',  ; This handles "% expression", which (?&exp) doesn't match.
                 '(?&contsec)(?&ambig)'
             )
         ')'
         '(?<v1_fin>'  ; Eats the remainder of the line and potential v1 continuation lines.
-            '.*+(?&v1_cont)?'
+            '(?:.*+(?&v1_cont))*.*+'
         ')'
         '(?<ambig>'  ; As above, but for ambiguous lines.
             ; It could be a v2 expression, so any lines that it would continue onto must also be matched
@@ -268,7 +268,7 @@ classification_regex := (
             ws0 '\{(?&eol)'
         ')'
         '(?<enclf>'  ; Separate subroutine works around a PCRE (*MARK) bug.
-            '\R' alt('(?&contsec)', mark_v2('cbe'))
+            '\R' alt('(?&contsec)', '(?!(?&solcont))' mark_v2('cbe'), '')
         ')'
         '(?<encex>'  ; An enclosed expression, allowing continuation.
             alt('[, `t]++', '(?&enclf)', '(?&subexp)', '(?&line_comment)') '*+'

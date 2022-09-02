@@ -206,6 +206,21 @@ tests := [
 {v: 2, t: [
     'static prop {'
 ]},
+{v: 1, t: [
+    'MsgBox % ""`n . "", a => b'
+]},
+{v: 1, t: [
+   'MsgBox % "Text" `n . "", % "Title"'
+]},
+{v: 2, t: [
+    'MsgBox % "Text" `n . "" % "Title"'
+]},
+{v: 0, t: [
+    'f("a"`n,,"b")'
+]},
+{v: 2, t: [
+    'f("a"`n,,`n"b")'
+]},
 
 ]
 
@@ -244,8 +259,10 @@ run_tests() {
             for m in matches(str, classification_regex) {
                 if v && InStr(m.Mark, v)
                     continue 2
-                else if SubStr(m.Mark,1,1) = 'v'
+                else if SubStr(m.Mark,1,1) = 'v' {
                     test_failed('expected v' v ', got ' m.Mark, str)
+                    continue 2
+                }
             }
             if v
                 test_failed('expected v' v, str)
