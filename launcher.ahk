@@ -29,7 +29,7 @@ Main() {
             continue
         }
         switches.push(arg)
-        if arg = '/iLib' && A_Args.length
+        if arg ~= 'i)^/(iLib|include)$' && A_Args.length
             switches.push(A_Args.RemoveAt(1))
     }
     if !IsSet(ScriptPath)
