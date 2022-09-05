@@ -72,8 +72,9 @@ InstallAutoHotkey(version) {
             abort "Download failed.`n`nURL: " url
 
         TrayTip "Installing AutoHotkey v" version, "AutoHotkey"
+        inst.SourceDir := tempDir '\v' version
         try
-            DirCopy tempDir '\' zipName, tempDir '\v' version, true
+            DirCopy tempDir '\' zipName, inst.SourceDir, true
         catch
             abort "Extraction failed."
         finally
@@ -82,9 +83,18 @@ InstallAutoHotkey(version) {
         catch
             MsgBox 'Unable to delete temporary file "' tempDir '\' zipName '".',, "Icon!"
         
-        inst.SourceDir := tempDir '\v' version
-        try
-            inst.InstallExtraVersion
+        localUXVer := ''
+        try localUXVer := inst.Hashes.Get('UX\install.ahk', '')
+        try {
+            if VerCompare(localUXVer, version) < 0
+                && FileExist(inst.SourceDir '\UX\install.ahk')
+                && FileExist(inst.SourceDir '\AutoHotkey32.exe') {
+                Run Format('"{1}\AutoHotkey32.exe" UX\install.ahk /to "{2}"', inst.SourceDir, inst.InstallDir), inst.SourceDir
+                ExitApp
+            }
+            else
+                inst.InstallExtraVersion
+        }
         catch as e
             abort "An error occurred during installation.", e.Message
     }
