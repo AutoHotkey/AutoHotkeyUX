@@ -464,7 +464,12 @@ class Installation {
         return scripts
     }
     
-    ScriptTitle(wnd) => RegExReplace(WinGetTitle(wnd), ' - AutoHotkey v.*')
+    ScriptTitle(wnd) {
+        try
+            return RegExReplace(WinGetTitle(wnd), ' - AutoHotkey v.*')
+        catch
+            return "(unable to retrieve title - already exited?)"
+    }
      
     ;}
     
