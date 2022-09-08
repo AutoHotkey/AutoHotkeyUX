@@ -38,9 +38,11 @@ Install_Main() {
         inst.%method%()
     }
     catch as e {
-        MsgBox type(e) ": " e.Message "`n`n" (e.Extra = "" ? "" : "Specifically: " e.Extra)
-            . "`n`nStack:`n" e.Stack,, "Iconx"
+        DllCall(CallbackCreate(errBox.Bind(e)))
         ExitApp 1
+    }
+    errBox(e) {
+        throw e
     }
 }
 
