@@ -1,5 +1,9 @@
-ROOT_DIR := RegRead("HKLM\SOFTWARE\AutoHotkey", "InstallDir", "")
-if ROOT_DIR = "" || !DirExist(ROOT_DIR)
+if A_AhkPath != A_ScriptDir '\AutoHotkeyUX.exe' {
+    ; Standalone, compiled or test mode: locate InstallDir via registry
+    DirExist(ROOT_DIR := RegRead('HKCU\SOFTWARE\AutoHotkey', 'InstallDir', ""))
+        ||  (ROOT_DIR := RegRead('HKLM\SOFTWARE\AutoHotkey', 'InstallDir', ""))
+}
+if (ROOT_DIR ?? "") = "" || !DirExist(ROOT_DIR)
     Loop Files A_ScriptDir '\..', 'D'
         ROOT_DIR := A_LoopFileFullPath
 AUTOHOTKEY_EXE_PATTERN := ROOT_DIR '\AutoHotkey*.exe'
