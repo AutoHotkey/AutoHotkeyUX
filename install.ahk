@@ -755,16 +755,18 @@ class Installation {
     }
     
     UpgradeV1() {
-        exe := GetExeInfo('AutoHotkey.exe')
-        build := RegExReplace(exe.Description, '^AutoHotkey *')
+        try { ; Permit failure in case AutoHotkey.exe has been deleted.
+            exe := GetExeInfo('AutoHotkey.exe')
+            build := RegExReplace(exe.Description, '^AutoHotkey *')
+        }
         
         ; Set default launcher settings
-        if ConfigRead('Launcher\v1', 'Build', '!') = '!'
+        if IsSet(build) && ConfigRead('Launcher\v1', 'Build', '!') = '!'
             ConfigWrite(build, 'Launcher\v1', 'Build')
         if ConfigRead('Launcher\v1', 'UTF8', '') = ''
             && InStr(RegRead('HKCR\' this.ScriptProgId '\Shell\Open\Command',, ''), '/cp65001 ')
             ConfigWrite(true, 'Launcher\v1', 'UTF8')
-        
+    
         ; Record these for Uninstall
         add 'AutoHotkey{1}.exe', '', 'A32', 'U32', 'U64', 'A32_UIA', 'U32_UIA', 'U64_UIA'
         add 'Compiler\{1}.bin', 'ANSI 32-bit', 'Unicode 32-bit', 'Unicode 64-bit', 'AutoHotkeySC'
@@ -773,7 +775,7 @@ class Installation {
         add(fmt, patterns*) {
             for p in patterns
                 if FileExist(f := Format(fmt, p))
-                    this.AddFileHash(f, exe.Version)
+                    this.AddFileHash(f, '')
         }
         
         ; Remove obsolete files
