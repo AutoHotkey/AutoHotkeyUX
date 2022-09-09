@@ -34,7 +34,7 @@ EnableUIAccess_SetManifest(ExePath) {
         , "xmlns:v1='urn:schemas-microsoft-com:asm.v1' "
         . "xmlns:v3='urn:schemas-microsoft-com:asm.v3'")
     if !xml.load("res://" ExePath "/#24/#1") ; Load current manifest
-        throw Error("Manifest not found")
+        throw Error("File or manifest not found",, ExePath)
     
     node := xml.selectSingleNode("/v1:assembly/v3:trustInfo/v3:security"
                     . "/v3:requestedPrivileges/v3:requestedExecutionLevel")
