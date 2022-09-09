@@ -51,8 +51,16 @@ EnableUIAccess_SetManifest(ExePath) {
         throw OSError()
     r := DllCall("UpdateResource", "ptr", hupd, "ptr", 24, "ptr", 1
                     , "ushort", 1033, "ptr", data, "uint", data.size)
-    if !DllCall("EndUpdateResource", "ptr", hupd, "int", !r) && r
-        throw OSError()
+
+    ; Retry loop to work around file locks (especially by antivirus)
+    for delay in [0, 100, 500, 1000, 3500] {
+        Sleep delay
+        if DllCall("EndUpdateResource", "ptr", hupd, "int", !r) || !r
+            return
+        if !(A_LastError = 5 || A_LastError = 110) ; ERROR_ACCESS_DENIED || ERROR_OPEN_FAILED
+            break
+    }
+    throw OSError(A_LastError, "EndUpdateResource")
 }
 
 EnableUIAccess_CreateCert(Name, hStore) {
