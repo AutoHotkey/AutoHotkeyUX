@@ -736,7 +736,23 @@ class Installation {
     MakeUIA(baseFile) {
         SplitPath baseFile,, &baseDir,, &baseName
         FileCopy baseFile, newPath := baseDir '\' baseName '_UIA.exe', true
-        EnableUIAccess newPath
+        static abort := false  ; Let "Abort" disable MakeUIA calls, but let other PostActions complete.
+        while !abort {
+            try {
+                EnableUIAccess newPath
+                break
+            }
+            catch as e {
+                try FileDelete newPath
+                if e.What != "EndUpdateResource"
+                    throw
+                switch MsgBox("Unable to create " baseName ". Try adding an exclusion in your antivirus software. If that doesn't work, please report the issue.`n`nError: " e.Message
+                    ,, "a/r/i") {
+                case "Abort": abort := true
+                case "Ignore": break
+                }
+            }
+        }
         this.AddFileHash newPath, '' ; For uninstall
     }
     
