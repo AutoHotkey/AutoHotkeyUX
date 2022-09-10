@@ -248,7 +248,10 @@ class Installation {
         
         this.Apply
         
-        Run Format('"{2}" "{1}\UX\ui-dash.ahk"', this.InstallDir, this.Interpreter)
+        if FileExist(this.InstallDir '\UX\reset-assoc.ahk')
+            RunWait this.CmdStr('UX\reset-assoc.ahk', '/check')
+        
+        Run this.CmdStr('UX\ui-dash.ahk')
     }
     
     InstallExtraVersion() {

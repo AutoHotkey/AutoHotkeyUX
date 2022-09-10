@@ -6,6 +6,13 @@
 
 keyname := "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.ahk\UserChoice"
 initial_progid := RegRead(keyname, "ProgId", "")
+if A_Args.Length && A_Args[1] = '/check' {
+    if initial_progid = "" || initial_progid = "AutoHotkeyScript"
+        || MsgBox("It looks like you've used an unsupported method to set the default program for .ahk files. "
+            . "This will prevent the standard context menu and launcher (version auto-detect) functionality "
+            . "from working. Would you like this setting to be reset for you?", "AutoHotkey", "Icon! y/n") != "yes"
+        ExitApp
+}
 reg_file_path := A_Temp "\reset-ahk-file-association.reg"
 FileOpen(reg_file_path, "w").Write("Windows Registry Editor Version 5.00`n"
     . "[-" keyname "]`n")
