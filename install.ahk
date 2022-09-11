@@ -343,7 +343,7 @@ class Installation {
             MsgBox("The following files were not deleted as they appear to have been modified:"
                 . modified, this.DialogTitle, "Iconi")
         }
-        FileDelete this.HashesPath
+        try FileDelete this.HashesPath
         for dir in StrSplit(Sort(RTrim(dirs, "`n"), 'UR'), "`n") {
             this.DeleteLink dir '\AutoHotkey.exe'    
             try DirDelete dir, false
