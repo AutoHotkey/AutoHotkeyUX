@@ -62,6 +62,16 @@ class InstallGui extends AutoHotkeyUxGui {
     }
     
     Browse(*) {
+        if ControlGetStyle(this['InstallDir']) & 0x800 { ; ES_READONLY
+            rootKey := this['ModeAll'].Value ? 'HKLM' : 'HKCU'
+            message := "Changing the installation directory is not recommended."
+            if InStr(RegRead(rootKey '\Software\AutoHotkey', 'Version', ''), '1.') = 1
+                message .= "`n`nThis installation package is designed to allow both v1 and v2 to be associated with .ahk files, but only if they are installed in the same directory."
+            message .= "`n`nExisting files will not be moved."
+            if MsgBox(message,, "OKCancel Icon!") != "OK"
+                return
+            this['InstallDir'].Opt('-ReadOnly')
+        }
         dir := this.FileSelect('D', this['InstallDir'].Value '\', "Select installation directory")
         if dir != '' {
             this['InstallDir'].Value := dir
@@ -77,10 +87,10 @@ class InstallGui extends AutoHotkeyUxGui {
             installDir := this['InstallDir'].Value
             if this['ModeAll'].Value {
                 if installDir = '' || installDir = DefaultUserDir
-                    this['InstallDir'].Value := DefaultAllDir
+                    this['InstallDir'].Value := DefaultAllDir, this['InstallDir'].Opt('-ReadOnly')
             } else
                 if installDir = '' || IsInProgramFiles(installDir)
-                    this['InstallDir'].Value := DefaultUserDir
+                    this['InstallDir'].Value := DefaultUserDir, this['InstallDir'].Opt('-ReadOnly')
         }
         this.UpdateShield()
     }
@@ -98,8 +108,10 @@ class InstallGui extends AutoHotkeyUxGui {
         for rootKey in setMode ? ['HKCU', 'HKLM'] : [this['ModeAll'].Value ? 'HKLM' : 'HKCU'] {
             dir := RegRead(rootKey '\Software\AutoHotkey', 'InstallDir', '')
             if dir != '' {
-                if setDir
+                if setDir {
                     this['InstallDir'].Value := dir
+                    this['InstallDir'].Opt('+ReadOnly')
+                }
                 if setMode
                     this[A_Index = 1 ? 'ModeUser' : 'ModeAll'].Value := true
                 return dir
@@ -125,7 +137,7 @@ class InstallGui extends AutoHotkeyUxGui {
         }
         dir := this.CheckAlreadyInstalled()
         if dir && dir != installDir
-            problem .= 'The existing installation in "' dir '" will not be integrated, and its registration will be overwritten.`n`n'
+            problem .= 'The existing installation in "' dir '" will not be moved or integrated with the new installation.`n`n'
         if requireAdmin && !IsInProgramFiles(installDir) && dir != installDir
             problem .= 'Enabling UI Access will not be possible because the installation directory is not a sub-directory of Program Files. Without UI Access, non-elevated scripts cannot interact with windows of elevated programs.`n`n'
         if problem && MsgBox(problem,, 'OKCancel Default2 Icon!') = 'Cancel'
