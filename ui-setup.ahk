@@ -58,6 +58,7 @@ class InstallGui extends AutoHotkeyUxGui {
         
         this.MarginY := -1
         this.Show('Hide w' TotalWidth)
+        this['InstallButton'].Focus()
     }
     
     Browse(*) {
