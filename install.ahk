@@ -268,8 +268,21 @@ class Installation {
         
         this.ElevateIfNeeded
         
-        this.Version := exe.Version
-        this.AddCoreFiles('v' exe.Version)
+        coreDir := 'v' (this.Version := exe.Version)
+        
+        if VerCompare(this.Version, '2.0-') < 0 {
+            try
+                exe := GetExeInfo(this.InstallDir '\AutoHotkeyU32.exe')
+            catch
+                {}
+            else if VerCompare(this.Version, exe.Version) > 0
+                && !FileExist(this.InstallDir '\v' exe.Version) {
+                this.AddPreAction this.DisplaceV1.Bind(, exe.Version)
+                coreDir := '.'
+            }
+        }
+        
+        this.AddCoreFiles(coreDir)
         
         if FileExist(this.SourceDir '\Compiler\Ahk2Exe.exe') {
             compilerVersion := GetExeInfo(this.SourceDir '\Compiler\Ahk2Exe.exe').Version
@@ -379,6 +392,8 @@ class Installation {
             else if ext = 'chm'
                 hasChm := true
         }
+        if writeFiles.Has(this.InstallDir '\AutoHotkeyU32.exe') ; Rough check for v1 upgrade
+            writeFiles[this.InstallDir '\AutoHotkey.exe'] := true
         ; Find any scripts being executed by those files
         ours(exe) => writeFiles.Has(exe) || writeFiles.Has(StrReplace(exe, '_UIA'))
         scripts := this.ScriptsUsingOurFiles(ours)
@@ -483,6 +498,8 @@ class Installation {
     AddCoreFiles(destSubDir) {
         this.AddFiles(this.SourceDir, destSubDir
             , 'AutoHotkey*.exe', 'AutoHotkey.chm'
+        )
+        this.AddFiles(this.SourceDir, destSubDir = '.' ? 'Compiler' : destSubDir
             , 'Compiler\*.bin' ; Legacy base files for compiler - even if Ahk2Exe is not installed yet.
         )
         
@@ -812,6 +829,41 @@ class Installation {
         try RegDeleteKey this.SoftwareKeyV1
         try RegDeleteKey this.UninstallKeyV1
     }
-     
+    
+    DisplaceV1(v) {
+        DirCreate dir := 'v' v
+        displace(path) {
+            if FileExist(path) {
+                SplitPath path, &name
+                FileMove path, dir '\' name
+                try this.Hashes.Delete(path)
+                this.AddFileHash dir '\' name, v
+            }
+        }
+        for build in ['U32', 'U64', 'A32'] {
+            displace 'AutoHotkey' build '.exe'
+            displace 'AutoHotkey' build '_UIA.exe'
+        }
+        for build in ['Unicode 32-bit', 'Unicode 64-bit', 'ANSI 32-bit']
+            displace 'Compiler\' build '.bin'
+        displace 'AutoHotkey.chm'
+        try {
+            exe := GetExeInfo('AutoHotkey.exe')
+            if exe.Version = v
+                && RegExMatch(exe.Description, ' (A|U)\w+ (32|64)-bit$', &m) {
+                ; Too early to add to FileItems, so use PostAction:
+                this.AddPostAction this.CopyDefaultExe.Bind(, 'AutoHotkey' m.1 m.2 '.exe')
+            }
+        }
+    }
+    
+    CopyDefaultExe(from) {
+        try
+            FileCopy from, 'AutoHotkey.exe', true
+        catch
+            return ; TODO: report to user?
+        this.AddFileHash 'AutoHotkey.exe', this.Version
+    }
+    
     ;}
 }
