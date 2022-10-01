@@ -215,8 +215,8 @@ class Installation {
         if SubStr(installedVersion, 1, 2) = '1.' {
             this.SoftwareKeyV1 := key
             this.UninstallKeyV1 := InStr(key, 'Wow64') ? wowKey(this.UninstallKey) : this.UninstallKey
-            this.AddPreCheck this.PrepareUpgradeV1
-            this.AddPreAction this.UpgradeV1
+            this.AddPreCheck this.PrepareUpgradeV1.Bind(, installedVersion)
+            this.AddPreAction this.UpgradeV1.Bind(, installedVersion)
         }
         
         if doFiles || FileExist(this.InstallDir '\UX\AutoHotkeyUX.exe')
@@ -787,13 +787,13 @@ class Installation {
 
     ;{ Upgrade from v1
     
-    PrepareUpgradeV1() {
+    PrepareUpgradeV1(installedVersion) {
         ; This needs to be done before conflict-checking
         if FileExist('license.txt')
-            this.AddFileHash('license.txt', '')
+            this.AddFileHash('license.txt', installedVersion)
     }
     
-    UpgradeV1() {
+    UpgradeV1(installedVersion) {
         try { ; Permit failure in case AutoHotkey.exe has been deleted.
             exe := GetExeInfo('AutoHotkey.exe')
             build := RegExReplace(exe.Description, '^AutoHotkey *')
@@ -814,7 +814,7 @@ class Installation {
         add(fmt, patterns*) {
             for p in patterns
                 if FileExist(f := Format(fmt, p))
-                    this.AddFileHash(f, '')
+                    this.AddFileHash f, installedVersion
         }
         
         ; Remove obsolete files
