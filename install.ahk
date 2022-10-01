@@ -755,7 +755,8 @@ class Installation {
     
     MakeUIA(baseFile) {
         SplitPath baseFile,, &baseDir,, &baseName
-        FileCopy baseFile, newPath := baseDir '\' baseName '_UIA.exe', true
+        baseDir := baseDir = '.' ? '' : baseDir '\'
+        FileCopy baseFile, newPath := baseDir baseName '_UIA.exe', true
         static abort := false  ; Let "Abort" disable MakeUIA calls, but let other PostActions complete.
         while !abort {
             try {
