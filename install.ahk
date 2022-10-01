@@ -178,9 +178,11 @@ class Installation {
             this.WriteHashes
     }
     
+    ElevationNeeded => !A_IsAdmin && (!this.UserInstall || this.HasProp('RequireAdmin'))
+    
     ElevateIfNeeded() {
-        if !A_IsAdmin && (!this.UserInstall || this.HasProp('RequireAdmin')) {
-            try Run '*runas ' DllCall('GetCommandLine', 'str')
+        if this.ElevationNeeded {
+            try RunWait '*runas ' DllCall('GetCommandLine', 'str')
             ExitApp
         }
     }
@@ -193,8 +195,6 @@ class Installation {
         this.ResolveInstallDir
         this.ResolveSourceDir
         
-        this.ElevateIfNeeded
-        
         doFiles := this.InstallDir != this.SourceDir
         
         ; If a newer version is already installed, integrate with it
@@ -203,9 +203,13 @@ class Installation {
             cmd := StrReplace(ux.InstallCommand, '%1', this.SourceDir,, &replaced)
             if !replaced
                 cmd .= ' "' this.SourceDir '"'
-            Run cmd, this.InstallDir
+            if this.ElevationNeeded
+                cmd := '*runas ' cmd
+            RunWait cmd, this.InstallDir
             ExitApp
         }
+        
+        this.ElevateIfNeeded
         
         ; If a legacy version is installed, upgrade it
         wowKey(k) => StrReplace(k, '\Software\', '\Software\Wow6432Node\')
