@@ -152,7 +152,7 @@ class NewScriptGui extends AutoHotkeyUxGui {
             SplitPath newPath, &basename
             SelectExplorerItem xp, basename
         }
-        else
+        else if btn.Name != 'Edit'
             Run 'explorer /select,"' newPath '"'
         
         if btn.Name = 'Edit'
