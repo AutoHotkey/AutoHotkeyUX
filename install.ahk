@@ -17,6 +17,7 @@ Install_Main() {
     try {
         inst := Installation()
         method := 'InstallFull'
+        params := []
         while A_Index <= A_Args.Length {
             switch A_Args[A_Index], 'off' {
             case '/install':
@@ -24,6 +25,8 @@ Install_Main() {
                 inst.SourceDir := A_Args[++A_Index]
             case '/uninstall':
                 method := 'Uninstall'
+                if A_Index < A_Args.Length
+                    params.Push(A_Args[++A_Index])
             case '/to':
                 inst.InstallDir := A_Args[++A_Index]
             case '/elevate':
@@ -35,7 +38,7 @@ Install_Main() {
                 ExitApp 1
             }
         }
-        inst.%method%()
+        inst.%method%(params*)
     }
     catch as e {
         DllCall(CallbackCreate(errBox.Bind(e)))
@@ -64,7 +67,7 @@ class Installation {
     FileTypeKey     => this.ClassesKey '\' this.ScriptProgId
     UninstallKey    => this.RootKey '\Software\Microsoft\Windows\CurrentVersion\Uninstall\AutoHotkey'
     StartShortcut   => (this.UserInstall ? A_Programs : A_ProgramsCommon) '\AutoHotkey.lnk'
-    UninstallCmd    => this.CmdStr('UX\install.ahk', '/uninstall' ((A_IsAdmin && this.UserInstall) ? ' /elevate' : ''))
+    UninstallCmd    => this.CmdStr('UX\ui-uninstall.ahk', ((A_IsAdmin && this.UserInstall) ? '/elevate' : ''))
     
     DialogTitle     => this.ProductName " Setup"
     
@@ -171,12 +174,8 @@ class Installation {
             item(this)
         
         ; Write file list to disk
-        if this.Hashes.Count {
-            s := "Hash,Version,Path`r`n"
-            for ,item in this.Hashes
-                s .= Format('{1},{2},"{3}"`r`n', item.Hash, item.Version, item.Path)
-            FileOpen(this.HashesPath, 'w').Write(s)
-        }
+        if this.Hashes.Count
+            this.WriteHashes
     }
     
     ElevateIfNeeded() {
@@ -298,19 +297,7 @@ class Installation {
     
     ;{ Uninstallation
     
-    Uninstall() {
-        this.ResolveInstallDir
-        
-        files := this.Hashes
-        if !files.Count
-            this.GetConfirmation("Installation data missing. Files will not be deleted.", 'x')
-        
-        this.ElevateIfNeeded
-        
-        ; Close scripts and help files
-        this.PreUninstallChecks()
-        
-        ; Registry
+    UninstallRegistry() {
         SetRegView 64
         delKey this.FileTypeKey
         delKey this.ClassesKey '\.ahk'
@@ -332,22 +319,51 @@ class Installation {
         }
         
         this.NotifyAssocChanged
+    }
+    
+    GetHashesForVersions(versions) {
+        versions := ',' versions ','
+        files := Map(), files.CaseSense := "off"
+        for , cfiles in this.GetComponents(v => InStr(versions, ',' v ','))
+            for fh in cfiles
+                files[fh.Path] := fh
+        return files
+    }
+    
+    Uninstall(versions:='') {
+        this.ResolveInstallDir
         
-        ; Files
+        this.ElevateIfNeeded
+        
+        files := versions = '' ? this.Hashes.Clone() : this.GetHashesForVersions(versions)
+        if !files.Count && versions = ''
+            this.GetConfirmation("Installation data missing. Files will not be deleted.", 'x')
+        
+        ; Close scripts and help files
+        this.PreUninstallChecks files
+        
+        ; Remove from registry only if being fully uninstalled
+        if versions = ''
+            this.UninstallRegistry
+        
+        ; Remove files
         SetWorkingDir this.InstallDir
         modified := ""
         dirs := ""
         for path, f in files {
             if !FileExist(path)
                 continue
-            if HashFile(path) = f.Hash {
-                if this.InstallDir '\' path = A_AhkPath
-                    postponed := A_AhkPath
-                else
-                    FileDelete path
-            } else {
+            if HashFile(path) != f.Hash {
                 modified .= "`n" path
+                continue
             }
+            if this.InstallDir '\' path = A_AhkPath {
+                postponed := A_AhkPath
+                this.Hashes.Delete(path)
+                continue
+            }
+            FileDelete path
+            this.Hashes.Delete(path)
             SplitPath path,, &dir
             if dir != ""
                 dirs .= dir "`n"
@@ -356,13 +372,21 @@ class Installation {
             MsgBox("The following files were not deleted as they appear to have been modified:"
                 . modified, this.DialogTitle, "Iconi")
         }
-        try FileDelete this.HashesPath
+        
+        ; Update or remove hashes file
+        if this.Hashes.Count
+            this.WriteHashes
+        else
+            try FileDelete this.HashesPath
+        
+        ; Remove empty directories
         for dir in StrSplit(Sort(RTrim(dirs, "`n"), 'UR'), "`n") {
             this.DeleteLink dir '\AutoHotkey.exe'    
             try DirDelete dir, false
         }
         
-        this.DeleteLink this.InstallDir '\v2'
+        if versions = '' ; Full uninstall
+            this.DeleteLink this.InstallDir '\v2'
         
         if IsSet(postponed) {
             ; Try delete via cmd.exe after we exit
@@ -442,8 +466,8 @@ class Installation {
         this.CloseScriptsUsingOurFiles(scripts, ours)
     }
     
-    PreUninstallChecks() {
-        ours(exe) => this.Hashes.Has(this.RelativePath(exe))
+    PreUninstallChecks(files) {
+        ours(exe) => files.Has(this.RelativePath(exe))
         scripts := this.ScriptsUsingOurFiles(ours)
         this.CloseScriptsUsingOurFiles(scripts, ours)
     }
@@ -656,6 +680,51 @@ class Installation {
     
     AddFileHash(f, v) {
         this.Hashes[f] := {Path: f, Hash: HashFile(f), Version: v}
+    }
+    
+    WriteHashes() {
+        s := "Hash,Version,Path`r`n"
+        for ,item in this.Hashes
+            s .= Format('{1},{2},"{3}"`r`n', item.Hash, item.Version, item.Path)
+        FileOpen(this.HashesPath, 'w').Write(s)
+    }
+    
+    GetComponents(versionFilter?) {
+        callerwd := A_WorkingDir
+        SetWorkingDir this.InstallDir
+        versions := Map()
+        trash := [], maxes := Map()
+        for , fh in this.Hashes {
+            if !FileExist(fh.Path) { ; Auto-fix obsolete entries
+                trash.Push(fh)
+                continue
+            }
+            if fh.Path = 'Compiler\Ahk2Exe.exe' {
+                ; versions['Ahk2Exe'] := [fh] ; Omitted for now since removal would require registry adjustments
+                continue
+            }
+            if fh.Path ~= 'i)^UX\\|^[A-Z]:|^\\\\|^(WindowSpy\.ahk|license\.txt)$'
+                continue
+            try fh.Version := GetExeInfo(fh.Path = 'AutoHotkey.chm' ? 'AutoHotkeyU32.exe' : fh.Path).Version ; Auto-fix inaccurate versions in Hashes
+            if !files := versions.Get(fh.Version, 0) {
+                if IsSet(versionFilter) && !versionFilter(fh.Version)
+                    continue
+                versions[fh.Version] := files := []
+                v := RegExReplace(fh.Version, '^\d+\.\d+\b\K.*')
+                if VerCompare(prevMax := maxes.Get(v, ''), fh.Version) < 0 {
+                    maxes[v] := fh.Version
+                    if prevMax != ''
+                        versions[prevMax].superseded := true
+                }
+                else
+                    files.superseded := true
+            }
+            files.InsertAt(1, fh)
+        }
+        for fh in trash
+            this.Hashes.Delete(fh.Path)
+        SetWorkingDir callerwd
+        return versions
     }
     
     NotifyAssocChanged() {
