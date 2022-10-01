@@ -147,7 +147,8 @@ class NewScriptGui extends AutoHotkeyUxGui {
             FileOpen(newPath, 'w', 'UTF-8').Write(code)
         }
         
-        if this.ExplorerHwnd && xp := GetExplorerByHwnd(this.ExplorerHwnd) {
+        if this.ExplorerHwnd && (xp := GetExplorerByHwnd(this.ExplorerHwnd))
+            || dir = A_Desktop && (xp := GetExplorerForDesktop()) {
             SplitPath newPath, &basename
             SelectExplorerItem xp, basename
         }
@@ -273,6 +274,11 @@ GetExplorerByHwnd(hwnd) {
     for window in ComObject("Shell.Application").Windows
         if window.hwnd = hwnd
             return window
+}
+
+GetExplorerForDesktop() {
+    hwndBuf := Buffer(4, 0), hwndRef := ComValue(0x4003, hwndBuf.Ptr)
+    return ComObject("Shell.Application").Windows.FindWindowSW(0, "", 8, hwndRef, 1)
 }
 
 GetPathForExplorerWindow(hwnd) {
