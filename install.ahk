@@ -688,9 +688,18 @@ class Installation {
     }
     
     WriteHashes() {
-        s := "Hash,Version,Path`r`n"
-        for ,item in this.Hashes
-            s .= Format('{1},{2},"{3}"`r`n', item.Hash, item.Version, item.Path)
+        s := "Hash,Version,Path,Description`r`n"
+        for ,item in this.Hashes {
+            if !item.HasProp('Description') {
+                try ; Cache the file description for the launcher
+                    exe := GetExeInfo(item.Path)
+                catch
+                    item.Description := ""
+                else
+                    item.Description := exe.Description, item.Version := exe.Version
+            }
+            s .= Format('{},{},"{}","{}"`r`n', item.Hash, item.Version, item.Path, item.Description)
+        }
         FileOpen(this.HashesPath, 'w').Write(s)
     }
     
