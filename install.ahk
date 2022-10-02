@@ -568,7 +568,6 @@ class Installation {
             {ValueName: 'DisplayName',          Value: this.ProductName (this.RootKey = 'HKCU' ? " (user)" : "")},
             {ValueName: 'UninstallString',      Value: unstr},
             {ValueName: 'QuietUninstallString', Value: unstr},
-            ; TODO: implement maintenance GUI
             {ValueName: 'NoModify',             Value: 1},
             {ValueName: 'DisplayIcon',          Value: this.Interpreter},
             {ValueName: 'DisplayVersion',       Value: this.Version},
