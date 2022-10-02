@@ -676,6 +676,8 @@ class Installation {
             item := {}
             Loop Parse csvfile.ReadLine(), 'CSV'
                 item.%props[A_Index]% := A_LoopField
+            if !FileExist(item.Path) ; Filter out obsolete entries early
+                continue
             filemap[item.Path] := item
         }
         return filemap
@@ -696,12 +698,8 @@ class Installation {
         callerwd := A_WorkingDir
         SetWorkingDir this.InstallDir
         versions := Map()
-        trash := [], maxes := Map()
+        maxes := Map()
         for , fh in this.Hashes {
-            if !FileExist(fh.Path) { ; Auto-fix obsolete entries
-                trash.Push(fh)
-                continue
-            }
             if fh.Path = 'Compiler\Ahk2Exe.exe' {
                 ; versions['Ahk2Exe'] := [fh] ; Omitted for now since removal would require registry adjustments
                 continue
@@ -724,8 +722,6 @@ class Installation {
             }
             files.InsertAt(1, fh)
         }
-        for fh in trash
-            this.Hashes.Delete(fh.Path)
         SetWorkingDir callerwd
         return versions
     }
