@@ -26,7 +26,7 @@ Install_Main() {
                 inst.SourceDir := A_Args[++A_Index]
             case '/uninstall':
                 method := 'Uninstall'
-                if A_Index < A_Args.Length
+                if A_Index < A_Args.Length && SubStr(A_Args[A_Index+1],1,1) != '/'
                     params.Push(A_Args[++A_Index])
             case '/to', '/installto':
                 inst.InstallDir := A_Args[++A_Index]
