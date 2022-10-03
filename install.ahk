@@ -4,6 +4,8 @@
 /* v1 stops here */
 #requires AutoHotkey v2.0-beta.3
 
+#SingleInstance Off ; Needed for elevation with *runas.
+
 #include inc\launcher-common.ahk
 #include inc\HashFile.ahk
 #include inc\config.ahk

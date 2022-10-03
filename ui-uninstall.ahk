@@ -3,11 +3,11 @@
 /* v1 stops here */
 #requires AutoHotkey v2.0-beta.6
 
-#NoTrayIcon
-#SingleInstance Force
-
 #include inc\ui-base.ahk
 #include install.ahk
+
+#NoTrayIcon
+#SingleInstance Force
 
 A_ScriptName := "AutoHotkey Setup"
 SetRegView 64
