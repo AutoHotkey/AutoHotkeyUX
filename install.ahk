@@ -28,7 +28,7 @@ Install_Main() {
                 method := 'Uninstall'
                 if A_Index < A_Args.Length
                     params.Push(A_Args[++A_Index])
-            case '/to':
+            case '/to', '/installto':
                 inst.InstallDir := A_Args[++A_Index]
             case '/elevate':
                 inst.RequireAdmin := true
