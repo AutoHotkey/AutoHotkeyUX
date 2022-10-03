@@ -72,6 +72,7 @@ class Installation {
     UninstallKey    => this.RootKey '\Software\Microsoft\Windows\CurrentVersion\Uninstall\AutoHotkey'
     StartShortcut   => (this.UserInstall ? A_Programs : A_ProgramsCommon) '\AutoHotkey.lnk'
     UninstallCmd    => this.CmdStr('UX\ui-uninstall.ahk', ((A_IsAdmin && this.UserInstall) ? '/elevate' : ''))
+    QUninstallCmd   => this.CmdStr('UX\install.ahk', '/uninstall /silent')
     
     DialogTitle     => this.ProductName " Setup"
     
@@ -567,11 +568,10 @@ class Installation {
     }
     
     AddUninstallReg() {
-        unstr := this.UninstallCmd
         this.AddRegValues(this.UninstallKey, [
             {ValueName: 'DisplayName',          Value: this.ProductName (this.RootKey = 'HKCU' ? " (user)" : "")},
-            {ValueName: 'UninstallString',      Value: unstr},
-            {ValueName: 'QuietUninstallString', Value: unstr},
+            {ValueName: 'UninstallString',      Value: this.UninstallCmd},
+            {ValueName: 'QuietUninstallString', Value: this.QUninstallCmd},
             {ValueName: 'NoModify',             Value: 1},
             {ValueName: 'DisplayIcon',          Value: this.Interpreter},
             {ValueName: 'DisplayVersion',       Value: this.Version},
