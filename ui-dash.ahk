@@ -71,8 +71,8 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
         case "Compile":
             if WinExist("Ahk2Exe ahk_class AutoHotkeyGUI")
                 WinActivate
-            else if FileExist(AHK2EXE_PATH)
-                Run '"' AHK2EXE_PATH '"'
+            else if FileExist(ROOT_DIR '\Compiler\Ahk2Exe.exe')
+                Run '"' ROOT_DIR '\Compiler\Ahk2Exe.exe"'
             else
                 Run Format('"{1}" /script "{2}\install-ahk2exe.ahk"', A_AhkPath, A_ScriptDir)
         case "Help":

@@ -105,7 +105,7 @@ class EditorSelectionGui extends AutoHotkeyUxGui {
 
 class DefaultEditorGui extends EditorSelectionGui {
     __new(scriptToEdit:=unset) {
-        cmd := RegRead('HKCR\' AHK_PROGID '\shell\edit\command',, '')
+        cmd := RegRead('HKCR\AutoHotkeyScript\shell\edit\command',, '')
         if InStr(cmd, A_LineFile)
             cmd := ''
         super.__new(cmd)
@@ -114,7 +114,7 @@ class DefaultEditorGui extends EditorSelectionGui {
     }
     
     OnConfirm(cmd) {
-        RegWrite(cmd, 'REG_SZ', 'HKCU\Software\Classes\' AHK_PROGID '\shell\edit\command')
+        RegWrite(cmd, 'REG_SZ', 'HKCU\Software\Classes\AutoHotkeyScript\shell\edit\command')
         if this.HasProp('ScriptToEdit')
             Run('edit "' this.ScriptToEdit '"')
     }

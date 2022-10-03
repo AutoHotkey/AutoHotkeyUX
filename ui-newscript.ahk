@@ -80,7 +80,7 @@ class NewScriptGui extends AutoHotkeyUxGui {
     }
     
     Browse(*) {
-        path := this.FileSelect('S', this['Dir'].Value "\" this['Name'].Value, this.Title, SCRIPT_FILES_FILTER)
+        path := this.FileSelect('S', this['Dir'].Value "\" this['Name'].Value, this.Title, "Script Files (*.ahk)")
         if path = ""
             return
         SplitPath path, &name, &dir
