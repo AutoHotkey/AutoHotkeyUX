@@ -34,6 +34,8 @@ Install_Main() {
                 inst.RequireAdmin := true
             case '/user':
                 inst.UserInstall := true
+            case '/silent':
+                inst.Silent := true
             default:
                 MsgBox 'Invalid arg "' A_Args[A_Index] '"', inst.DialogTitle, "Iconx"
                 ExitApp 1
@@ -59,6 +61,7 @@ class Installation {
     
     UserInstall     := !A_IsAdmin
     Interpreter     := A_AhkPath
+    Silent          := false
     
     ScriptProgId    := 'AutoHotkeyScript'
     SoftwareSubKey  := 'Software\AutoHotkey'
@@ -150,7 +153,7 @@ class Installation {
             try
                 FileCopy item.Source, item.Dest, true
             catch
-                MsgBox 'Copy failed`nsource: ' item.Source '`ndest: ' item.Dest
+                this.WarnBox 'Copy failed`nsource: ' item.Source '`ndest: ' item.Dest
             else {
                 ; If source files were extracted from a zip, they may have a Zone.Identifier
                 ; stream identifying them as coming from the Internet. These must be deleted
@@ -206,8 +209,7 @@ class Installation {
                 cmd .= ' "' this.SourceDir '"'
             if this.ElevationNeeded
                 cmd := '*runas ' cmd
-            RunWait cmd, this.InstallDir
-            ExitApp
+            ExitApp RunWait(cmd, this.InstallDir)
         }
         
         this.ElevateIfNeeded
@@ -255,7 +257,8 @@ class Installation {
         if FileExist(this.InstallDir '\UX\reset-assoc.ahk')
             RunWait this.CmdStr('UX\reset-assoc.ahk', '/check')
         
-        Run this.CmdStr('UX\ui-dash.ahk')
+        if !this.Silent
+            Run this.CmdStr('UX\ui-dash.ahk')
     }
     
     InstallExtraVersion() {
@@ -374,8 +377,8 @@ class Installation {
                 dirs .= dir "`n"
         }
         if modified != "" {
-            MsgBox("The following files were not deleted as they appear to have been modified:"
-                . modified, this.DialogTitle, "Iconi")
+            this.InfoBox("The following files were not deleted as they appear to have been modified:"
+                . modified)
         }
         
         ; Update or remove hashes file
@@ -726,13 +729,24 @@ class Installation {
     }
     
     GetConfirmation(message, icon:='!') {
-        if MsgBox(message, this.DialogTitle, 'Icon' icon ' OkCancel') = 'Cancel'
+        if !this.Silent && MsgBox(message, this.DialogTitle, 'Icon' icon ' OkCancel') = 'Cancel'
             ExitApp 1
     }
     
+    WarnBox(message) {
+        if !this.Silent
+            MsgBox message, this.DialogTitle, "Icon!"
+    }
+    
+    InfoBox(message) {
+        if !this.Silent
+            MsgBox message, this.DialogTitle, "Iconi"
+    }
+    
     FatalError(message) {
-        MsgBox message, this.DialogTitle, 'Iconx'
-        ExitApp
+        if !this.Silent
+            MsgBox message, this.DialogTitle, 'Iconx'
+        ExitApp 1
     }
     
     GetTargetUX() {
@@ -829,6 +843,11 @@ class Installation {
                 try FileDelete newPath
                 if e.What != "EndUpdateResource"
                     throw
+                if this.Silent {
+                    if A_Index > 4
+                        break
+                    Sleep 500
+                }
                 switch MsgBox("Unable to create " baseName ". Try adding an exclusion in your antivirus software. If that doesn't work, please report the issue.`n`nError: " e.Message
                     ,, "a/r/i") {
                 case "Abort": abort := true
