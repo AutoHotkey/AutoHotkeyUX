@@ -4,7 +4,6 @@
 #NoTrayIcon
 #SingleInstance Off
 
-#include inc\common.ahk
 #include inc\launcher-common.ahk
 #include inc\ui-base.ahk
 #include inc\CommandLineToArgs.ahk

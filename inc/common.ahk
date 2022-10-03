@@ -7,7 +7,6 @@ if A_AhkPath != A_ScriptDir '\AutoHotkeyUX.exe' {
 if (ROOT_DIR ?? "") = "" || !DirExist(ROOT_DIR)
     Loop Files A_ScriptDir '\..', 'D'
         ROOT_DIR := A_LoopFileFullPath
-AUTOHOTKEY_EXE_PATTERN := ROOT_DIR '\AutoHotkey*.exe'
 
 if !RegRead('HKCU\Software\AutoHotkey', 'Trace', false)
     trace.DefineProp 'call', {call: (*) => ''}

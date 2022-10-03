@@ -8,7 +8,6 @@
 #NoTrayIcon
 
 #include inc\identify.ahk
-#include inc\common.ahk
 #include inc\launcher-common.ahk
 
 A_AllowMainWindow := true
@@ -115,11 +114,8 @@ LocateExeByVersion(v, vexact:=false, prefer:='!UIA, 64, !ANSI') {
     ; trace '![Launcher] Attempting to locate v' v '; prefer ' prefer
     majorVer := GetMajor(v), best := '', bestscore := 0
     IsInteger(v) && v .= '-' ; Allow pre-release versions.
-    Loop Files AUTOHOTKEY_EXE_PATTERN, 'R' {
+    for ,f in GetUsableAutoHotkeyExes() {
         try {
-            f := GetExeInfo(A_LoopFileFullPath)
-            if !IsUsableAutoHotkey(f)
-                continue
             relation := VerCompare(f.Version, v)
             if vexact ? relation != 0 : (relation < 0 || GetMajor(f.Version) > majorVer) {
                 ; trace '![Launcher] Skipping v' f.Version ': ' f.Path

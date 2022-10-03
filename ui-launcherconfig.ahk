@@ -3,22 +3,16 @@
 
 #NoTrayIcon
 
-#include inc\common.ahk
 #include inc\launcher-common.ahk
 #include inc\ui-base.ahk
 
 GetVersions() {
     vmap := Map(1, Map(), 2, Map())
-    Loop Files AUTOHOTKEY_EXE_PATTERN, 'R' {
-        try {
-            f := GetExeInfo(A_LoopFileFullPath)
-            if !IsUsableAutoHotkey(f)
-                continue
+    for ,f in GetUsableAutoHotkeyExes() {
+        try
             vmap[GetMajor(f.Version)][f.Version] := true
-        }
-        catch as e {
+        catch as e
             trace "-[Launcher] " type(e) " checking file " A_LoopFileName ": " e.message
-        }
     }
     vmap[1] := [vmap[1]*]
     vmap[2] := [vmap[2]*]

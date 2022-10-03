@@ -8,7 +8,6 @@
 
 #include inc\launcher-common.ahk
 #include inc\HashFile.ahk
-#include inc\config.ahk
 #include inc\CreateAppShortcut.ahk
 #include inc\EnableUIAccess.ahk
 
@@ -667,23 +666,7 @@ class Installation {
     AddPreAction(f) => this.PreAction.Push(f)
     AddPostAction(f) => this.PostAction.Push(f)
     
-    ReadHashes() {
-        filemap := Map(), filemap.CaseSense := 0
-        hashesPath := this.HashesPath
-        if !FileExist(hashesPath)
-            return filemap
-        csvfile := FileOpen(hashesPath, 'r')
-        props := StrSplit(csvfile.ReadLine(), ',')
-        while !csvfile.AtEOF {
-            item := {}
-            Loop Parse csvfile.ReadLine(), 'CSV'
-                item.%props[A_Index]% := A_LoopField
-            if !FileExist(item.Path) ; Filter out obsolete entries early
-                continue
-            filemap[item.Path] := item
-        }
-        return filemap
-    }
+    ReadHashes() => ReadHashes(this.HashesPath, item => FileExist(item.Path))
     
     AddFileHash(f, v) {
         this.Hashes[f] := {Path: f, Hash: HashFile(f), Version: v}
