@@ -700,11 +700,8 @@ class Installation {
         versions := Map()
         maxes := Map()
         for , fh in this.Hashes {
-            if fh.Path = 'Compiler\Ahk2Exe.exe' {
-                ; versions['Ahk2Exe'] := [fh] ; Omitted for now since removal would require registry adjustments
-                continue
-            }
             if fh.Path ~= 'i)^UX\\|^[A-Z]:|^\\\\|^(WindowSpy\.ahk|license\.txt)$'
+                . '|^Compiler\\(?!.*\.bin$)'
                 continue
             try fh.Version := GetExeInfo(fh.Path = 'AutoHotkey.chm' ? 'AutoHotkeyU32.exe' : fh.Path).Version ; Auto-fix inaccurate versions in Hashes
             if !files := versions.Get(fh.Version, 0) {
