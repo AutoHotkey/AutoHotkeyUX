@@ -683,8 +683,11 @@ class Installation {
                     exe := GetExeInfo(item.Path)
                 catch
                     item.Description := ""
-                else
-                    item.Description := exe.Description, item.Version := exe.Version
+                else {
+                    item.Description := exe.Description
+                    if InStr(item.Description, 'AutoHotkey')
+                        item.Version := exe.Version ; Ensure accuracy for the launcher
+                }
             }
             s .= Format('{},{},"{}","{}"`r`n', item.Hash, item.Version, item.Path, item.Description)
         }
