@@ -22,12 +22,10 @@ GetExeInfo(exe) {
 }
 
 IsUsableAutoHotkey(exeinfo) {
-    return exeinfo.HasProp('Description') &&
-        InStr(exeinfo.Description, 'AutoHotkey') && !(
-        InStr(exeinfo.Description, '64') && !A_Is64bitOS ||
-        InStr(exeinfo.Description, 'Launcher') ||
-        InStr(exeinfo.Path, '\AutoHotkeyUX.exe')
-    )
+    return exeinfo.HasProp('Description')
+        && RegExMatch(exeinfo.Description, '^AutoHotkey.* (32|64)-bit', &m)
+        && (m.1 != '64' || A_Is64bitOS)
+        && !InStr(exeinfo.Path, '\AutoHotkeyUX.exe')
 }
 
 GetMajor(v) {
