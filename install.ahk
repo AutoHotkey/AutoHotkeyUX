@@ -669,7 +669,13 @@ class Installation {
     AddPreAction(f) => this.PreAction.Push(f)
     AddPostAction(f) => this.PostAction.Push(f)
     
-    ReadHashes() => ReadHashes(this.HashesPath, item => FileExist(item.Path))
+    ReadHashes() {
+        ; For maintainability, don't assume the caller has set the working dir.
+        wd := A_WorkingDir, A_WorkingDir := this.InstallDir
+        hashes := ReadHashes(this.HashesPath, item => FileExist(item.Path))
+        A_WorkingDir := wd
+        return hashes
+    }
     
     AddFileHash(f, v) {
         this.Hashes[f] := {Path: f, Hash: HashFile(f), Version: v}
