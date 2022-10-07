@@ -42,10 +42,13 @@ class ModifySetupGui extends AutoHotkeyUxGui {
     ClickedRemove(btn, *) {
         cmd := ''
         if btn.Name = 'Remove' {
-            n := 0, iv := this['Components']
+            n := 0, iv := this['Components'], count := 0
             while n := iv.GetNext(n, 'C')
-                cmd .= ',' iv.GetText(n)
-            cmd := ' "' SubStr(cmd, 2) '"'
+                cmd .= ',' iv.GetText(n), ++count
+            if count = iv.GetCount()
+                cmd := '' ; All are selected - do a full uninstall
+            else
+                cmd := ' "' SubStr(cmd, 2) '"'
         }
         cmd := Format('"{1}" "{2}\install.ahk" /uninstall{3}', A_AhkPath, A_ScriptDir, cmd)
         if (!this.inst.UserInstall || A_Args.Length && A_Args[1] = '/elevate') && !A_IsAdmin
