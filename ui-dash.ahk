@@ -78,6 +78,10 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
         case "Help":
             ShowHelpFile()
         case "Window":
+            try {
+                Run '"' A_MyDocuments '\AutoHotkey\WindowSpy.ahk"'
+                return
+            }
             static AHK_FILE_WINDOWSPY := 0xFF7A ; 65402
             static WM_COMMAND := 0x111 ; 273
             SendMessage WM_COMMAND, AHK_FILE_WINDOWSPY, 0, A_ScriptHwnd
