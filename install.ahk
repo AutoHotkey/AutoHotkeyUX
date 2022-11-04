@@ -210,7 +210,14 @@ class Installation {
                 cmd .= ' "' this.SourceDir '"'
             if this.ElevationNeeded
                 cmd := '*runas ' cmd
-            ExitApp RunWait(cmd, this.InstallDir)
+            try
+                exitCode := RunWait(cmd, this.InstallDir)
+            catch as e
+                if InStr(e.Message e.Extra, 'cancel')
+                    exitCode := 1
+                else
+                    throw e
+            ExitApp exitCode
         }
         
         this.ElevateIfNeeded

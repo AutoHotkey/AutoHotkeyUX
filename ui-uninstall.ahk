@@ -53,8 +53,13 @@ class ModifySetupGui extends AutoHotkeyUxGui {
         cmd := Format('"{1}" "{2}\install.ahk" /uninstall{3}', A_AhkPath, A_ScriptDir, cmd)
         if (!this.inst.UserInstall || A_Args.Length && A_Args[1] = '/elevate') && !A_IsAdmin
             cmd := '*RunAs ' cmd
-        Run cmd
-        ExitApp
+        try {
+            Run cmd
+            ExitApp
+        }
+        catch as e
+            if !InStr(e.Message e.Extra, 'cancel')
+                throw e
     }
     
     Checked(iv, *) {
