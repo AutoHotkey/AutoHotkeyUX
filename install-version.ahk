@@ -83,10 +83,11 @@ InstallAutoHotkey(version) {
         catch
             MsgBox 'Unable to delete temporary file "' tempDir '\' zipName '".',, "Icon!"
         
-        localUXVer := ''
-        try localUXVer := inst.Hashes.Get('UX\install.ahk', '')
+        try localUX := inst.Hashes['UX\install.ahk']
+        catch
+            localUX := {Version: ''}
         try {
-            if VerCompare(localUXVer, version) < 0
+            if VerCompare(localUX.Version, version) < 0
                 && FileExist(inst.SourceDir '\UX\install.ahk')
                 && FileExist(inst.SourceDir '\AutoHotkey32.exe') {
                 Run Format('"{1}\AutoHotkey32.exe" UX\install.ahk /to "{2}"', inst.SourceDir, inst.InstallDir), inst.SourceDir
