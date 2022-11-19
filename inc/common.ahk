@@ -8,7 +8,7 @@ if (ROOT_DIR ?? "") = "" || !DirExist(ROOT_DIR)
     Loop Files A_ScriptDir '\..', 'D'
         ROOT_DIR := A_LoopFileFullPath
 
-if !RegRead('HKCU\Software\AutoHotkey', 'Trace', false)
+if !trace.Enabled := RegRead('HKCU\Software\AutoHotkey', 'Trace', false)
     trace.DefineProp 'call', {call: (*) => ''}
 
 #include config.ahk

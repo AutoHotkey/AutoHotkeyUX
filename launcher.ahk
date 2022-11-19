@@ -197,6 +197,7 @@ LaunchScript(exe, ahk, args:="", switches:="", encoding:="UTF-8") {
     hStdOut := DllCall("GetStdHandle", "uint", -11, "ptr")
     hStdErr := DllCall("GetStdHandle", "uint", -12, "ptr")
     
+    ; Build command line to execute.
     makeArgs(args) {
         r := ''
         for arg in args is object ? args : [args]
@@ -204,9 +205,26 @@ LaunchScript(exe, ahk, args:="", switches:="", encoding:="UTF-8") {
         return r
     }
     switches := makeArgs(switches)
-    waitClose := hStdIn || hStdOut || hStdErr || (switches ~= "(?<!\S)/(?i:iLib|validate|Debug)") != 0
     cmd := Format('"{1}"{2} "{3}"{4}', exe, switches, ahk, makeArgs(args))
     trace '>[Launcher] ' cmd
+    
+    ; For RunWait, stdout redirection, /validate, etc. to have the best chance of working,
+    ; let the launcher exit early only if it can detect that it was executed from Explorer
+    ; or the parent process appears to have exited already.
+    waitClose := true
+    hParent := 0
+    if IsSet(ProcessGetParent) {
+        try {
+            ; (PROCESS_QUERY_LIMITED_INFORMATION := 0x1000) | (SYNCHRONIZE := 0x100000)
+            if hParent := DllCall("OpenProcess", "uint", 0x101000, "int", false
+                , "uint", parentPid := ProcessGetParent(), "ptr")
+                hParent := Handle(hParent)
+            waitClose := hParent && (parentName := ProcessGetName(parentPid)) != "explorer.exe"
+        }
+        catch as e
+            trace '![Launcher] Failure checking parent process: ' e.Message
+    }
+
     try {
         proc := RunWithHandles(cmd, {in: hStdIn, out: hStdOut, err: hStdErr})
     }
@@ -219,11 +237,30 @@ LaunchScript(exe, ahk, args:="", switches:="", encoding:="UTF-8") {
         ExitApp
     }
     
-    if waitClose
-        ProcessWaitClose proc.pid
-
+    if waitClose {
+        ; Wait for either the child process or our parent process (if determined) to terminate.
+        NumPut 'ptr', proc.hProcess.ptr, 'ptr', hParent ? hParent.ptr : 0, waitHandles := Buffer(A_PtrSize*2)
+        loop {
+            Sleep -1
+            waitResult := DllCall("MsgWaitForMultipleObjects", "uint", 1 + (hParent != 0), "ptr", waitHandles, "int", 0, "uint", -1, "uint", 0x04FF)
+        } until waitResult = 0 || waitResult = 1
+    }
+    
     DllCall("GetExitCodeProcess", "ptr", proc.hProcess, "uint*", &exitCode:=0)
-    trace '>[Launcher] Exit code: ' exitCode
+    if trace.Enabled {
+        ; We have to return something numeric for ExitApp, so currently exitCode is left as 259
+        ; if the process is still running.
+        if exitCode = 259 && DllCall("WaitForSingleObject", "ptr", proc.hProcess, "uint", 0) = 258 { ; STILL_ACTIVE = 259, WAIT_TIMEOUT = 258
+            if !(hParent ?? 1) || (waitResult ?? -1) = 1
+                trace '>[Launcher] Process launched; now exiting because parent process has terminated.'
+            else if (parentName ?? "") = "explorer.exe"
+                trace '>[Launcher] Process launched; now exiting because parent is explorer.exe.'
+            else
+                trace '>[Launcher] Process launched; launcher exiting early.'
+        }
+        else        
+            trace '>[Launcher] Exit code: ' exitCode
+    }
     
     return {exitCode: exitCode}
 }
