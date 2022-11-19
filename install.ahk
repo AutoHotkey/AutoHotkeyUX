@@ -619,6 +619,10 @@ class Installation {
             this.AddVerb('UIAccess', 'UX\launcher.ahk', '/runwith UIA "%1" %*',
                 "Run with UI access", aumid)
         }
+        ; Add *Launch as a hidden verb, accessible via Run('*Launch ' file).
+        this.AddVerb('Launch', 'UX\launcher.ahk', '/Launch "%1" %*', "Launch",
+            aumid, {ValueName: 'ProgrammaticAccessOnly', Value: ""}
+        )
     }
 
     AddEditVerbIfUnset() {
