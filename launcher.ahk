@@ -35,6 +35,10 @@ Main() {
             A_Args.runwith := nextArgValue()
         case '/Launch':     ; Launcher-specific
             A_Args.launch := true
+        case '/Which':
+            A_Args.which := true
+            if trace.Enabled
+                trace.DefineProp 'call', {call: (this, s) => OutputDebug(s)} ; Don't use stdout.
         case '/iLib', '/include':
             switches.push(arg)
             switches.push(nextArgValue())
@@ -70,20 +74,24 @@ IdentifyAndLaunch(ScriptPath, args, switches) {
     i := identify()
     v := i.v || ConfigRead('Launcher', 'Fallback', "")
     trace "![Launcher] version " (v || "unknown") " -- " i.r
-    if !v {
-        exe := PromptMajorVersion(ScriptPath)
-        if exe
-            section := "v" GetMajor(exe.Version)
-    }
-    else {
-        exe := GetRequiredOrPreferredExe(v)
-    }
-    if !exe
-        exe := TryToInstallVersion(v, i.v ? i.r : '', ScriptPath)
+    whichMode := args.HasProp('which')
+    if !v
+        exe := whichMode ? "" : PromptMajorVersion(ScriptPath)
+    else
+        if !exe := GetRequiredOrPreferredExe(v)
+            if !whichMode
+                exe := TryToInstallVersion(v, i.v ? i.r : '', ScriptPath)
     if exe {
-        if GetMajor(exe.Version) = 1 && ConfigRead('Launcher\v1', 'UTF8', false)
+        if addUtf8 := GetMajor(exe.Version) = 1 && ConfigRead('Launcher\v1', 'UTF8', false)
             switches.InsertAt(1, '/CP65001')
-        ExitApp LaunchScript(exe.Path, ScriptPath, args, switches)
+        if !whichMode
+            ExitApp LaunchScript(exe.Path, ScriptPath, args, switches)
+    }
+    if whichMode {
+        try FileAppend(v "`n"
+            (exe ? exe.Path : "") "`n"
+            ((addUtf8 ?? false) ? '/CP65001' : "") "`n", '*', 'UTF-8-RAW')
+        ExitApp i.v ? GetMajor(i.v) : 0
     }
     ExitApp 2
 }
