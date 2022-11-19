@@ -192,13 +192,10 @@ class Handle {
 }
 
 LaunchScript(exe, ahk, args:="", switches:="", encoding:="UTF-8") {
-    DllCall("CreatePipe", "ptr*", hStdErrR := Handle(), "ptr*", hStdErrW := Handle(), "ptr", 0, "int", 0)
-    DllCall("SetHandleInformation", "ptr", hStdErrW, "int", 1, "int", 1)
-    DllCall("SetNamedPipeHandleState", "ptr", hStdErrR, "uint*", PIPE_NOWAIT:=1, "ptr", 0, "ptr", 0)
-    
     ; Pass our own stdin/stdout handles (if any) to the child process.
     hStdIn  := DllCall("GetStdHandle", "uint", -10, "ptr")
     hStdOut := DllCall("GetStdHandle", "uint", -11, "ptr")
+    hStdErr := DllCall("GetStdHandle", "uint", -12, "ptr")
     
     makeArgs(args) {
         r := ''
@@ -207,11 +204,11 @@ LaunchScript(exe, ahk, args:="", switches:="", encoding:="UTF-8") {
         return r
     }
     switches := makeArgs(switches)
-    forceWait := (switches ~= "(?<!\S)/(?i:iLib|validate|Debug)") != 0
+    waitClose := hStdIn || hStdOut || hStdErr || (switches ~= "(?<!\S)/(?i:iLib|validate|Debug)") != 0
     cmd := Format('"{1}"{2} "{3}"{4}', exe, switches, ahk, makeArgs(args))
     trace '>[Launcher] ' cmd
     try {
-        proc := RunWithHandles(cmd, {in: hStdIn, out: hStdOut, err: hStdErrW})
+        proc := RunWithHandles(cmd, {in: hStdIn, out: hStdOut, err: hStdErr})
     }
     catch OSError as e {
         if e.Number != 740 ; ERROR_ELEVATION_REQUIRED
@@ -222,38 +219,13 @@ LaunchScript(exe, ahk, args:="", switches:="", encoding:="UTF-8") {
         ExitApp
     }
     
-    WindowCheck() {
-        DetectHiddenWindows true
-        if !WinExist("ahk_pid " proc.pid)
-            return
-        ;trace "[Launcher] Launch successful"
-        ; Script has launched or is displaying a warning/error message.
-        ; Either way no syntax error was detected, so we're done here.
-        if !(hStdIn || hStdOut || forceWait)
-            ExitApp
-        SetTimer(, 0)
-    }
-    SetTimer WindowCheck, 100
-    
-    hStdErrW := ""  ; This ensures PeekNamedPipe will return false after the process exits.
-    errors := ""
-    ereader := FileOpen(hStdErrR.ptr, "h", encoding)
-    while DllCall("PeekNamedPipe", "ptr", hStdErrR, "ptr", 0, "int", 0, "ptr", 0, "uint*", &bytes:=0, "ptr", 0) {
-        while line := ereader.ReadLine() {
-            try FileAppend line "`n", "**"  ; Print errors for calling process to see.
-            errors .= (errors != "" ? "`n" : "") . line
-        }
-        Sleep 1
-    }
-    
-    if forceWait
+    if waitClose
         ProcessWaitClose proc.pid
 
-    SetTimer WindowCheck, false
     DllCall("GetExitCodeProcess", "ptr", proc.hProcess, "uint*", &exitCode:=0)
     trace '>[Launcher] Exit code: ' exitCode
     
-    return {exitCode: exitCode, errors: errors}
+    return {exitCode: exitCode}
 }
 
 RunWithHandles(cmd, handles, workingDir:="") {
