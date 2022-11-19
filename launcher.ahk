@@ -23,13 +23,25 @@ Main() {
             ScriptPath := arg
             break
         }
-        if arg = '/runwith' { ; Launcher-only switch
-            A_Args.runwith := A_Args.RemoveAt(1)
-            continue
+        nextArgValue() {
+            if !A_Args.Length {
+                MsgBox "Invalid command line switches; missing value for " arg ".", "AutoHotkey Launcher", "icon!"
+                ExitApp 1
+            }
+            return A_Args.RemoveAt(1)
         }
-        switches.push(arg)
-        if arg ~= 'i)^/(iLib|include)$' && A_Args.length
-            switches.push(A_Args.RemoveAt(1))
+        switch arg, false {
+        case '/RunWith':    ; Launcher-specific
+            A_Args.runwith := nextArgValue()
+        case '/Launch':     ; Launcher-specific
+            A_Args.launch := true
+        case '/iLib', '/include':
+            switches.push(arg)
+            switches.push(nextArgValue())
+        default:
+            switches.push(arg)
+        }
+        
     }
     if !IsSet(ScriptPath)
         && !FileExist(ScriptPath := A_ScriptDir "\AutoHotkey.ahk")
@@ -71,7 +83,7 @@ IdentifyAndLaunch(ScriptPath, args, switches) {
     if exe {
         if GetMajor(exe.Version) = 1 && ConfigRead('Launcher\v1', 'UTF8', false)
             switches.InsertAt(1, '/CP65001')
-        ExitApp LaunchScript(exe.Path, ScriptPath, args, switches).exitCode
+        ExitApp LaunchScript(exe.Path, ScriptPath, args, switches)
     }
     ExitApp 2
 }
@@ -210,8 +222,8 @@ LaunchScript(exe, ahk, args:="", switches:="", encoding:="UTF-8") {
     
     ; For RunWait, stdout redirection, /validate, etc. to have the best chance of working,
     ; let the launcher exit early only if it can detect that it was executed from Explorer
-    ; or the parent process appears to have exited already.
-    waitClose := true
+    ; or the parent process appears to have exited already (or if the caller passed /launch).
+    waitClose := !args.HasProp('launch')
     hParent := 0
     if IsSet(ProcessGetParent) {
         try {
@@ -219,7 +231,8 @@ LaunchScript(exe, ahk, args:="", switches:="", encoding:="UTF-8") {
             if hParent := DllCall("OpenProcess", "uint", 0x101000, "int", false
                 , "uint", parentPid := ProcessGetParent(), "ptr")
                 hParent := Handle(hParent)
-            waitClose := hParent && (parentName := ProcessGetName(parentPid)) != "explorer.exe"
+            if !hParent || (parentName := ProcessGetName(parentPid)) = "explorer.exe"
+                waitClose := false
         }
         catch as e
             trace '![Launcher] Failure checking parent process: ' e.Message
@@ -236,6 +249,10 @@ LaunchScript(exe, ahk, args:="", switches:="", encoding:="UTF-8") {
         Run cmd
         ExitApp
     }
+    
+    ; When the /launch switch is used, return the process ID as the launcher's exit code.
+    if args.HasProp('launch')
+        return proc.pid
     
     if waitClose {
         ; Wait for either the child process or our parent process (if determined) to terminate.
@@ -262,7 +279,7 @@ LaunchScript(exe, ahk, args:="", switches:="", encoding:="UTF-8") {
             trace '>[Launcher] Exit code: ' exitCode
     }
     
-    return {exitCode: exitCode}
+    return exitCode
 }
 
 RunWithHandles(cmd, handles, workingDir:="") {
