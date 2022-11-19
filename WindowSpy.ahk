@@ -79,6 +79,8 @@ TryUpdate() {
     If !oGui.HasProp("txtNotFrozen") ; WinSpyGui() not done yet, return until it is
         return
     
+    try DllCall("SetThreadDpiAwarenessContext", "ptr", -3, "ptr") ; enable per-monitor DPI awareness
+    
     Ctrl_FollowMouse := oGui["Ctrl_FollowMouse"].Value
     CoordMode "Mouse", "Screen"
     MouseGetPos &msX, &msY, &msWin, &msCtrl, 2 ; get ClassNN and hWindow
