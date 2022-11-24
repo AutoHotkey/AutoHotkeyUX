@@ -65,8 +65,8 @@ Main() {
 IdentifyAndLaunch(ScriptPath, args, switches) {
     code := FileRead(ScriptPath, 'UTF-8')
     identify() {
-        if RegExMatch(code, "im)^[ `t]*#Requires[ `t]+AutoHotkey[ `t]v(?<ver>\S+)", &m)
-            return {v: m.ver, r: "#Requires"}
+        if RegExMatch(code, "im)^[ `t]*#Requires[ `t]+AutoHotkey[ `t]v(?<ver>\S+)\s*+(?>;\s*prefer\s+)?(?<prefer>[^;`r`n\.]*)", &m)
+            return {v: m.ver, r: "#Requires", prefer: m.prefer}
         if ConfigRead('Launcher', 'Identify', true)
             return IdentifyBySyntax(code)
         return {v: 0, r: "syntax-checking is disabled"}
@@ -78,7 +78,7 @@ IdentifyAndLaunch(ScriptPath, args, switches) {
     if !v
         exe := whichMode ? "" : PromptMajorVersion(ScriptPath)
     else
-        if !exe := GetRequiredOrPreferredExe(v)
+        if !exe := GetRequiredOrPreferredExe(v, i.HasProp('prefer') ? i.prefer : '')
             if !whichMode
                 exe := TryToInstallVersion(v, i.v ? i.r : '', ScriptPath)
     if exe {
@@ -119,10 +119,10 @@ TryToInstallVersion(v, r, ScriptPath) {
     return exe := GetRequiredOrPreferredExe(v)
 }
 
-GetRequiredOrPreferredExe(v) {
+GetRequiredOrPreferredExe(v, prefer:='') {
     section := 'Launcher\v' GetMajor(v)
     userv := ConfigRead(section, 'Version', "")
-    prefer := A_Args.HasProp('runwith') ? A_Args.runwith : ''
+    prefer := (A_Args.HasProp('runwith') ? A_Args.runwith ',' : '') . prefer
     prefer .= ',' (ConfigRead(section, 'Build', (A_Is64bitOS ? "64," : "") "!ANSI"))
     prefer .= ',' (ConfigRead(section, 'UIA', false) ? 'UIA' : '!UIA')
     if vexact := (userv != "" && (IsInteger(v) || VerCompare(v, userv) < 0))
@@ -131,7 +131,7 @@ GetRequiredOrPreferredExe(v) {
 }
 
 LocateExeByVersion(v, vexact:=false, prefer:='!UIA, 64, !ANSI') {
-    ; trace '![Launcher] Attempting to locate v' v '; prefer ' prefer
+    trace '![Launcher] Attempting to locate v' v '; prefer ' prefer
     majorVer := GetMajor(v), best := '', bestscore := 0
     IsInteger(v) && v .= '-' ; Allow pre-release versions.
     for ,f in GetUsableAutoHotkeyExes() {
