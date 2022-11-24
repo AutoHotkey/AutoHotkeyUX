@@ -9,6 +9,7 @@
 
 #include inc\identify.ahk
 #include inc\launcher-common.ahk
+#include inc\ui-base.ahk
 
 A_AllowMainWindow := true
 SetWorkingDir A_InitialWorkingDir
@@ -180,22 +181,17 @@ PromptMajorVersion(ScriptPath:="") {
         trace '-[Launcher] Failed to locate any interpreters; fallback to launcher'
         return {Path: A_AhkPath, Version: A_AhkVersion}
     }
-    ; TODO: improve UI
-    m := Menu()
-    if ScriptPath != "" {
-        SplitPath ScriptPath, &ScriptPath
-        m.Add("Open " ScriptPath " with", (*) => 0)
-        m.Disable('1&')
-    }
-    selected := ''
+    files := []
     for , f in majors
-        m.Add(f.Version, ((f, *) => selected := f).Bind(f))
-    m.Show()
-    if !selected {
+        files.Push(f)
+    prompt := VersionSelectGui(ScriptPath, files)
+    prompt.Show
+    WinWaitClose prompt
+    if !prompt.HasProp('selection') {
         trace '[Launcher] No version selected from menu'
         ExitApp
     }
-    return selected
+    return prompt.selection
 }
 
 LocateMajorVersions(filePattern:='', fileLoopOpt:='R') {
@@ -312,4 +308,42 @@ RunWithHandles(cmd, handles, workingDir:="") {
     return { hProcess: Handle(NumGet(pi, 0, "ptr"))
            , hThread: Handle(NumGet(pi, A_PtrSize, "ptr"))
            , pid: NumGet(pi, A_PtrSize*2, "uint") }
+}
+
+class VersionSelectGui extends AutoHotkeyUxGui {
+    __new(script, files) {
+        SplitPath script, &scriptName
+        super.__new("Run " scriptName " with", '-MinimizeBox')
+        DllCall('uxtheme\SetWindowThemeAttribute', 'ptr', this.hwnd, 'int', 1 ; WTA_NONCLIENT
+            , 'int64*', 2 | (2<<32), 'int', 8) ; WTNCA_NODRAWICON=2
+        lv := this.AddListMenu('vList LV0x40 w200', ["Version"])
+        lv.OnEvent('Focus', 'Focused')
+        lv.OnEvent('LoseFocus', 'Focused')
+        lv.OnEvent('Click', 'Confirm')
+        il := IL_Create(,, false)
+        lv.SetImageList(il, 0)
+        for f in this.files := files {
+            lv.Add('Icon' IL_Add(il, f.Path), f.Version " " StrReplace(f.Description, "AutoHotkey "))
+        }
+        lv.AutoSize(8)
+        lv.GetPos(&x, &y, &w, &h)
+        this.Show('AutoSize Hide')
+        this.AddButton('Default Hidden', "Confirm").OnEvent('Click', 'Confirm')
+    }
+    
+    Confirm(*) {
+        this.selection := this.files[this['List'].GetNext()]
+        this.Hide()
+    }
+    
+    Focused(ctrl, *) {
+        OnMessage(0x101, keyup, ctrl.Focused)
+        static keyup(wParam, lParam, nmsg, hwnd) {
+            local this := GuiFromHwnd(hwnd, true)
+            if IsDigit(GetKeyName(Format("vk{:x}", wParam))) && this['List'].GetNext() {
+                this.Confirm()
+                return true
+            }
+        }
+    }
 }
