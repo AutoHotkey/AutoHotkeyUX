@@ -4,8 +4,7 @@
 #NoTrayIcon
 #SingleInstance Off
 
-#include inc\launcher-common.ahk
-#include inc\ui-base.ahk
+#include launcher.ahk
 #include inc\CommandLineToArgs.ahk
 
 class EditorSelectionGui extends AutoHotkeyUxGui {
@@ -41,11 +40,29 @@ class EditorSelectionGui extends AutoHotkeyUxGui {
         app := this.FileSelect(3,,, "Apps (*.exe; *.ahk)")
         if app = ""
             return
-        SplitPath app,,, &ext
-        this['Cmd'].Value :=
-            ext = "ahk" ? Format('"{2}\AutoHotkey.exe" "{1}" "%l"', app, ROOT_DIR)
-                        : Format('"{1}" "%l"', app)
+        this['Cmd'].Value := this.GetAppCmd(app)
         this.CmdChanged()
+    }
+    
+    GetAppCmd(app) {
+        SplitPath app,,, &ext
+        if ext != "ahk"
+            return Format('"{1}" "%l"', app)
+        lp := GetLaunchParameters(app, true)
+        if !lp.exe
+            return ""
+        ; Try to use a path that will work if the user installs a new version and removes this one
+        ; (rather than invoking the launcher every time the edit verb is executed).
+        adaptivePath := RegExReplace(lp.exe.Path, lp.v = 1 ? '\\v1[^\\]*(?=\\[^\\]*$)' : '\\v2\K[^\\]+(?=\\[^\\]*$)')
+        trace '![Launcher] ' adaptivePath
+        try
+            adaptiveExe := GetExeInfo(adaptivePath)
+        if !IsSet(adaptiveExe) || VerCompare(adaptiveExe.Version, lp.v) < 0
+            adaptivePath := ""
+        cmd := Format('"{}"', FileExist(adaptivePath) ? adaptivePath : lp.exe.Path)
+        for sw in lp.switches
+            cmd .= ' ' sw
+        return cmd .= Format(' "{}" "%l"', app)
     }
     
     EditorSelected(lv, index) {
