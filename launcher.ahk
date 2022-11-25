@@ -11,10 +11,10 @@
 #include inc\launcher-common.ahk
 #include inc\ui-base.ahk
 
-A_AllowMainWindow := true
-SetWorkingDir A_InitialWorkingDir
-
-Main
+if A_ScriptFullPath == A_LineFile {
+    SetWorkingDir A_InitialWorkingDir
+    Main
+}
 
 Main() {
     switches := []
@@ -63,38 +63,42 @@ Main() {
     IdentifyAndLaunch ScriptPath, A_Args, switches
 }
 
-IdentifyAndLaunch(ScriptPath, args, switches) {
+GetLaunchParameters(ScriptPath, interactive:=false) {
     code := FileRead(ScriptPath, 'UTF-8')
-    identify() {
-        if RegExMatch(code, "im)^[ `t]*#Requires[ `t]+AutoHotkey[ `t]v(?<ver>\S+)\s*+(?>;\s*prefer\s+)?(?<prefer>[^;`r`n\.]*)", &m)
-            return {v: m.ver, r: "#Requires", prefer: m.prefer}
-        if ConfigRead('Launcher', 'Identify', true)
-            return IdentifyBySyntax(code)
-        return {v: 0, r: "syntax-checking is disabled"}
-    }
-    i := identify()
+    if RegExMatch(code, "im)^[ `t]*#Requires[ `t]+AutoHotkey[ `t]v(?<ver>\S+)\s*+(?>;\s*prefer\s+)?(?<prefer>[^;`r`n\.]*)", &m)
+        i := {v: m.ver, r: "#Requires", prefer: m.prefer}
+    else if ConfigRead('Launcher', 'Identify', true)
+        i := IdentifyBySyntax(code)
+    else
+        i := {v: 0, r: "syntax-checking is disabled"}
     v := i.v || ConfigRead('Launcher', 'Fallback', "")
     trace "![Launcher] version " (v || "unknown") " -- " i.r
-    whichMode := args.HasProp('which')
     if !v
-        exe := whichMode ? "" : PromptMajorVersion(ScriptPath)
+        exe := interactive ? PromptMajorVersion(ScriptPath) : ""
     else
         if !exe := GetRequiredOrPreferredExe(v, i.HasProp('prefer') ? i.prefer : '')
-            if !whichMode
+            if interactive
                 exe := TryToInstallVersion(v, i.v ? i.r : '', ScriptPath)
+    lp := {exe: exe, id: i, v: v, switches: []}
     if exe {
-        if addUtf8 := GetMajor(exe.Version) = 1 && ConfigRead('Launcher\v1', 'UTF8', false)
-            switches.InsertAt(1, '/CP65001')
-        if !whichMode
-            ExitApp LaunchScript(exe.Path, ScriptPath, args, switches)
+        if GetMajor(exe.Version) = 1 && ConfigRead('Launcher\v1', 'UTF8', false)
+            lp.switches.Push('/CP65001')
     }
+    return lp
+}
+
+IdentifyAndLaunch(ScriptPath, args, switches) {
+    lp := GetLaunchParameters(ScriptPath, !(whichMode := args.HasProp('which')))
     if whichMode {
-        try FileAppend(v "`n"
-            (exe ? exe.Path : "") "`n"
-            ((addUtf8 ?? false) ? '/CP65001' : "") "`n", '*', 'UTF-8-RAW')
-        ExitApp i.v ? GetMajor(i.v) : 0
+        try FileAppend(lp.v "`n"
+            (lp.exe ? lp.exe.Path : "") "`n"
+            (lp.switches.Length ? lp.switches[1] : "") "`n", '*', 'UTF-8-RAW')
+        ExitApp lp.id.v ? GetMajor(lp.id.v) : 0
     }
-    ExitApp 2
+    if !lp.exe
+        ExitApp 2
+    switches.Push(lp.switches*)
+    ExitApp LaunchScript(lp.exe.Path, ScriptPath, args, switches)
 }
 
 TryToInstallVersion(v, r, ScriptPath) {
