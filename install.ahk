@@ -10,6 +10,7 @@
 #include inc\HashFile.ahk
 #include inc\CreateAppShortcut.ahk
 #include inc\EnableUIAccess.ahk
+#include inc\ShellRun.ahk
 
 if A_LineFile = A_ScriptFullPath
     Install_Main
@@ -266,7 +267,7 @@ class Installation {
             RunWait this.CmdStr('UX\reset-assoc.ahk', '/check')
         
         if !this.Silent
-            Run this.CmdStr('UX\ui-dash.ahk')
+            ShellRun this.Interpreter, 'UX\ui-dash.ahk', this.InstallDir
     }
     
     InstallExtraVersion() {

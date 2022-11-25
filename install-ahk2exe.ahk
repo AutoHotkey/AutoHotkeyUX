@@ -13,7 +13,7 @@ InstallAhk2Exe() {
     
     finalPath := inst.InstallDir '\Compiler\Ahk2Exe.exe'
     if FileExist(finalPath) {
-        Run finalPath
+        ShellRun finalPath
         ExitApp
     }
     
@@ -49,5 +49,5 @@ InstallAhk2Exe() {
     DirDelete tempDir '\Compiler', true
     DirDelete tempDir
     
-    Run finalPath
+    ShellRun finalPath
 }
