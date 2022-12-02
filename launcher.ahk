@@ -65,8 +65,17 @@ Main() {
 
 GetLaunchParameters(ScriptPath, interactive:=false) {
     code := FileRead(ScriptPath, 'UTF-8')
-    if RegExMatch(code, "im)^[ `t]*#Requires[ `t]+AutoHotkey[ `t]v(?<ver>\S+)\s*+(?>;\s*prefer\s+)?(?<prefer>[^;`r`n\.]*)", &m)
-        i := {v: m.ver, r: "#Requires", prefer: m.prefer}
+    if RegExMatch(code, 'im)^[ `t]*#Requires[ `t]+AutoHotkey[ `t]+(.*)', &m) {
+        ; Replace "; prefer x." with "x" and remove other comments
+        prefer := RegExReplace(m.1, 'i);\s*prefer([ `t]+[^;`r`n\.]+)|;.*', '$1')
+        ; Extract version requirement
+        if RegExMatch(prefer, '(?<!\S)v(\d\S+)', &m)
+            v := m.1, prefer := StrReplace(prefer, m.0)
+        ; Insert commas as needed
+        prefer := RegExReplace(prefer, '[^\s,]\K\s+(?!$)', ",")
+    }
+    if IsSet(v)
+        i := {v: v, r: "#Requires"}
     else if ConfigRead('Launcher', 'Identify', true)
         i := IdentifyBySyntax(code)
     else
@@ -76,7 +85,7 @@ GetLaunchParameters(ScriptPath, interactive:=false) {
     if !v
         exe := interactive ? PromptMajorVersion(ScriptPath) : ""
     else
-        if !exe := GetRequiredOrPreferredExe(v, i.HasProp('prefer') ? i.prefer : '')
+        if !exe := GetRequiredOrPreferredExe(v, prefer ?? '')
             if interactive
                 exe := TryToInstallVersion(v, i.v ? i.r : '', ScriptPath)
     lp := {exe: exe, id: i, v: v, switches: []}
