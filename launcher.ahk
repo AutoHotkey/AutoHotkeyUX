@@ -69,7 +69,7 @@ GetLaunchParameters(ScriptPath, interactive:=false) {
         ; Replace "; prefer x." with "x" and remove other comments
         prefer := RegExReplace(m.1, 'i);\s*prefer([ `t]+[^;`r`n\.]+)|;.*', '$1')
         ; Extract version requirement
-        if RegExMatch(prefer, '(?<!\S)v(\d\S+)', &m)
+        if RegExMatch(prefer, '(?<!\S)(?:>=)?v(\d\S+)', &m)
             v := m.1, prefer := StrReplace(prefer, m.0)
         ; Insert commas as needed
         prefer := RegExReplace(prefer, '[^\s,]\K\s+(?!$)', ",")
@@ -155,24 +155,19 @@ LocateExeByVersion(v, vexact:=false, prefer:='!UIA, 64, !ANSI') {
                 ; trace '![Launcher] Skipping v' f.Version ': ' f.Path
                 continue
             }
-            if !vexact && best {
-                relation := VerCompare(f.Version, best.Version)
-                if relation < 0 {
-                    ; trace '![Launcher] Skipping v' f.Version ': ' f.Path
-                    continue
-                }
-                if relation > 0
-                    bestscore := 0
-            }
             fscore := 0
             Loop Parse prefer, ",", " " {
+                if A_LoopField = ""
+                    continue
                 fscore <<= 1
-                if A_LoopField != "" && !matchPref(f.Description, A_LoopField)
+                if !(A_LoopField ~= '^[<>=]' ? VerCompare(f.Version, A_LoopField)
+                    : matchPref(f.Description, A_LoopField))
                     continue
                 fscore |= 1
             }
             ; trace '![Launcher] ' fscore ' v' f.Version ' ' f.Path
             if bestscore <= fscore  ; <= vs < because it tends to prefer 64 over 32, U over A (if unspecified).
+                || !vexact && bestscore = fscore && VerCompare(f.Version, best.Version) > 0  ; Prefer later version if all else matches
                 bestscore := fscore, best := f
         }
         catch as e {
