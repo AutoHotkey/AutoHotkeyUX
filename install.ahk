@@ -594,7 +594,8 @@ class Installation {
         this.AddRegValues(this.ClassesKey, [
             {Key: '.ahk', Value: this.ScriptProgId},
             {Key: '.ahk\ShellNew', ValueName: 'Command', Value: this.CmdStr('UX\ui-newscript.ahk', '"%1"')},
-            {Key: '.ahk\ShellNew', ValueName: 'FileName'}
+            {Key: '.ahk\ShellNew', ValueName: 'FileName'},
+            {Key: '.ahk\PersistentHandler', Value: '{5e941d80-bf96-11cd-b579-08002b30bfeb}'}
         ])
         this.AddRegValues(this.FileTypeKey, [
             {Value: "AutoHotkey Script"},
