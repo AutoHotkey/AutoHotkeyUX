@@ -1,5 +1,5 @@
 ; This script shows a GUI for setting the default .ahk editor.
-#requires AutoHotkey v2.0-beta.3
+#requires AutoHotkey v2.0-rc.2
 
 #NoTrayIcon
 #SingleInstance Off
