@@ -166,8 +166,10 @@ LocateExeByVersion(v, vexact:=false, prefer:='!UIA, 64, !ANSI') {
                 fscore |= 1
             }
             ; trace '![Launcher] ' fscore ' v' f.Version ' ' f.Path
-            if bestscore <= fscore  ; <= vs < because it tends to prefer 64 over 32, U over A (if unspecified).
-                || !vexact && bestscore = fscore && VerCompare(f.Version, best.Version) > 0  ; Prefer later version if all else matches
+            ; Prefer later version if all else matches.  If version also matches, prefer later
+            ; files enumeration order is generally AutoHotkey.exe, ..A32.exe, ..U32.exe, ..U64.exe.
+            if bestscore < fscore
+                || bestscore = fscore && (vexact || VerCompare(f.Version, best.Version) > 0)
                 bestscore := fscore, best := f
         }
         catch as e {
