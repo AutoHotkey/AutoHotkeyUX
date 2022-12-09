@@ -945,8 +945,15 @@ class Installation {
             displace 'AutoHotkey' build '.exe'
             displace 'AutoHotkey' build '_UIA.exe'
         }
-        for build in ['Unicode 32-bit', 'Unicode 64-bit', 'ANSI 32-bit']
+        try
+            defaultBinSize := FileGetSize(defaultBinPath := 'Compiler\AutoHotkeySC.bin')
+        for build in ['Unicode 32-bit', 'Unicode 64-bit', 'ANSI 32-bit'] {
+            try
+                if FileGetSize('Compiler\' build '.bin') = defaultBinSize
+                    this.AddFileCopy this.InstallDir '\Compiler\' build '.bin', defaultBinPath
             displace 'Compiler\' build '.bin'
+        }
+            
         displace 'AutoHotkey.chm'
         try {
             exe := GetExeInfo('AutoHotkey.exe')
