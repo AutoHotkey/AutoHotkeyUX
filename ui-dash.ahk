@@ -101,37 +101,27 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
 }
 
 ShowHelpFile() {
-    main := Map(), main.CaseSense := "off"
+    SetWorkingDir ROOT_DIR
+    main := Map(), sub := Map()
     other := Map(), other.CaseSense := "off"
-    Loop Files ROOT_DIR "\*.chm", "FR" {
+    hashes := ReadHashes('UX\installed-files.csv', item => item.Path ~= 'i)\.chm$')
+    Loop Files "*.chm", "FR" {
         SplitPath A_LoopFilePath,, &dir,, &name
-        if SubStr(dir, -3) = '\v2' && (DllCall('GetFileAttributes', 'str', dir) & 0x400)
-            continue ; Skip symbolic link
-        dir := SubStr(dir, StrLen(ROOT_DIR) + 2)
-        if dir ~= '^\d\.\d'
-            dir := "v" dir
         if name = "AutoHotkey" {
-            if dir = "" { ; Guess version
-                dir := "Unknown version"
-                Loop Files ROOT_DIR "\AutoHotkey*.exe" {
-                    try {
-                        info := GetExeInfo(A_LoopFilePath)
-                        if (info.Description ~= '^AutoHotkey(?! Launcher)') {
-                            dir := "v" info.Version
-                            break
-                        }
-                    }
-                }
-            }
-            main[A_LoopFilePath] := dir
+            if !(f := hashes.Get(A_LoopFilePath, false))
+                continue
+            v := GetMajor(f.Version)
+            if !(cur := main.Get(v, false)) || VerCompare(cur.Version, f.Version) < 0
+                main[v] := f
+            sub[f.Version] := f
         }
         else
-            other[A_LoopFilePath] := name (dir != "" ? " (" dir ")" : "")
+            other[A_LoopFilePath] := name (dir != "" && name != dir ? " (" dir ")" : "")
     }
     
-    if main.Count = 1 && other.Count = 0 {
-        for f in main { ; Don't bother showing online options in this case.
-            Run f
+    if sub.Count = 1 && other.Count = 0 {
+        for , f in main { ; Don't bother showing online options in this case.
+            Run f.Path
             return
         }   
     }
@@ -141,8 +131,16 @@ ShowHelpFile() {
         m.Add "Offline help", (*) => 0
         m.Disable "1&"
     }
-    for f, t in main
-        m.Add RegExReplace(t, 'v(?=\d)', "v&"), openIt.Bind(f)
+    for , f in main {
+        m.Add "v&" f.Version, openIt.Bind(f.Path)
+        sub.Delete(f.Version)
+    }
+    if sub.Count {
+        subm := Menu()
+        for , f in sub
+            subm.Insert "1&", "v" f.Version, openIt.Bind(f.Path)
+        m.Add "More", subm
+    }
     
     m.Add "Online help", (*) => 0
     m.Disable "Online help"
