@@ -14,7 +14,7 @@
 
 class AutoHotkeyDashGui extends AutoHotkeyUxGui {
     __new() {
-        super.__new("AutoHotkey")
+        super.__new("AutoHotkey Dash")
         
         lv := this.AddListMenu('vLV LV0x40 w300', ["Name", "Desc"])
         lv.OnEvent("Click", "ItemClicked")
