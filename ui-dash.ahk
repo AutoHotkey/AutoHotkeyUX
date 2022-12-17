@@ -12,11 +12,13 @@
 #include ui-editor.ahk
 #include ui-newscript.ahk
 
+DashRegKey := 'HKCU\Software\AutoHotkey\Dash'
+
 class AutoHotkeyDashGui extends AutoHotkeyUxGui {
     __new() {
         super.__new("AutoHotkey Dash")
         
-        lv := this.AddListMenu('vLV LV0x40 w300', ["Name", "Desc"])
+        lv := this.AddListMenu('vLV LV0x40 w250', ["Name", "Desc"])
         lv.OnEvent("Click", "ItemClicked")
         lv.OnEvent("ItemFocus", "ItemFocused")
         lv.OnNotify(-155, "KeyPressed")
@@ -47,9 +49,45 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
         ; lv.Add(, "Downloads", "Get related tools")
         
         lv.AutoSize()
-        lv.GetPos(,, &w, &h)
-        this.Show("Hide w" (w + this.MarginX*2) " h" (h + this.MarginY*2))
-        ; this.AddPicture("Icon-114 w16 h16 y" 18+h, "imageres.dll")
+        lv.GetPos(,,, &h)
+        
+        if !RegRead(DashRegKey, 'SuppressIntro', false) {
+            this.SetFont('s12')
+            this.AddText('yp x+m', "Welcome!")
+            this.SetFont('s9')
+            this.AddText('xp', "This is the Dash. It provides access to tools, settings and help files.")
+            this.AddText('xp', "To learn how to use AutoHotkey, refer to:")
+            this.AddLink('xp', "
+            (
+            `s   • <a href="Program.htm">Using the Program</a>
+                • <a href="howto/WriteHotkeys.htm">How to Write Hotkeys</a>
+                • <a href="howto/SendKeys.htm">How to Send Keystrokes</a>
+                • <a href="howto/RunPrograms.htm">How to Run Programs</a>
+                • <a href="howto/ManageWindows.htm">How to Manage Windows</a>
+                • <a href="index.htm#Quick_Reference">Quick Reference</a>
+            )").OnEvent('Click', 'LinkClicked')
+            
+            checkBox := this.AddCheckbox('Checked', "Show this info next time")
+            checkBox.GetPos(,,, &hc)
+            checkBox.Move(, h - hc)
+            checkBox.OnEvent('Click', 'SetIntroPref')
+        }
+        
+        this.Show("Hide h" (h + this.MarginY*2))
+    }
+    
+    LinkClicked(ctrl, id, href) {
+        if FileExist(chm := ROOT_DIR '\v2\AutoHotkey.chm')
+            Run 'hh.exe "ms-its:' chm '::docs/' href '"'
+        else
+            Run 'https://lexikos.github.io/v2/docs/' href
+    }
+    
+    SetIntroPref(checkBox, *) {
+        if checkBox.Value { ; Show intro
+            try RegDelete(DashRegKey, 'SuppressIntro')
+        } else
+            RegWrite(true, 'REG_DWORD', DashRegKey, 'SuppressIntro')
     }
     
     KeyPressed(lv, lParam) {
