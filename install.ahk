@@ -2,7 +2,7 @@
 ; See the AutoHotkey v2 documentation for usage.
 #include inc\bounce-v1.ahk
 /* v1 stops here */
-#requires AutoHotkey v2.0-beta.3
+#requires AutoHotkey v2.0-rc.3
 
 #SingleInstance Off ; Needed for elevation with *runas.
 
@@ -238,10 +238,12 @@ class Installation {
             this.Interpreter := this.InstallDir '\UX\AutoHotkeyUX.exe'
         
         if doFiles {
-            this.AddCoreFiles 'v' this.Version
+            if this.GetLinkAttrib(this.InstallDir '\v2')
+                this.AddPreAction this.DeleteLink.Bind(, 'v2')
+            this.AddCoreFiles 'v2'
             ; Give UX its own AutoHotkey.exe for a few reasons:
             ;  1. The Start menu shortcut needs a stable path, since pinning to taskbar creates
-            ;     a copy that won't get updated.
+            ;     a copy that won't get updated (obsolete since using 'v2' and DisplaceFile now).
             ;  2. LauncherConfigGui may store the path under HKCU, which mightn't get updated.
             ;  3. It helps differentiate the launcher from other scripts in Task Manager.
             ;  4. It makes the UX scripts independent from the installed interpreters.
@@ -423,41 +425,45 @@ class Installation {
     ;{ Conflict prevention
     
     PreApplyChecks() {
-        ; Map files which may need to be overwritten
+        ; Check for files that might be overwritten
         writeFiles := Map(), writeFiles.CaseSense := 'off'
         hasChm := false
-        for item in this.FileItems {
-            SplitPath item.Dest,,, &ext
-            if ext = 'exe'
-                writeFiles[this.InstallDir '\' item.Dest] := true
-            else if ext = 'chm'
-                hasChm := true
-        }
-        if writeFiles.Has(this.InstallDir '\AutoHotkeyU32.exe') ; Rough check for v1 upgrade
-            writeFiles[this.InstallDir '\AutoHotkey.exe'] := true
-        ; Find any scripts being executed by those files
-        ours(exe) => writeFiles.Has(exe) || writeFiles.Has(StrReplace(exe, '_UIA'))
-        scripts := this.ScriptsUsingOurFiles(ours)
-        
-        ; Find files that the user might not want overwritten
         unknownFiles := ''
         modifiedFiles := ''
         hashes := this.Hashes
         if (item := hashes.Get(this.InstallDir '\UX\AutoHotkeyUX.exe', false)) ; Erroneous entry by v2.0-beta.4
             hashes.Delete(item.Path), hashes[item.Path := 'UX\AutoHotkeyUX.exe'] := item ; Make it relative
         for item in this.FileItems {
-            if attrib := FileExist(item.Dest) {
-                if InStr(attrib, 'D') {
-                    this.FatalError("The following file cannot be installed "
-                        "because a directory by this name already exists:`n"
-                        item.Dest "`n`nNo changes have been made.")
-                }
-                if !(installedFile := hashes.Get(item.Dest, ''))
-                    unknownFiles .= item.Dest "`n"
-                else if installedFile.Hash != HashFile(item.Dest)
-                    modifiedFiles .= item.Dest "`n"
+            if !(attrib := FileExist(item.Dest))
+                continue
+            if InStr(attrib, 'D')
+                this.FatalError("The following file cannot be installed because a directory by this name already exists:`n"
+                    item.Dest "`n`nNo changes have been made.")
+            SplitPath item.Dest,, &destDir, &ext, &destName
+            if destDir = 'v2' && this.GetLinkAttrib(destDir)
+                continue ; Symlink should be deleted, so item.Dest won't exist.
+            if ext = 'exe'
+                writeFiles[this.InstallDir '\' item.Dest] := true
+            else if ext = 'chm'
+                hasChm := true
+            if !(curFile := hashes.Get(item.Dest, ''))
+                unknownFiles .= item.Dest "`n"
+            else if destDir = 'v2' && curFile.Version && curFile.Version != this.Version {
+                this.AddPreAction this.DisplaceFile.Bind(, item.Dest
+                    , 'v' curFile.Version '\' destName '.' ext, curFile.Version)
+                if ext = 'exe' && FileExist('v2\' destName '_UIA.exe')
+                    this.AddPreAction this.DisplaceFile.Bind(, 'v2\' destName '_UIA.exe'
+                        , 'v' curFile.Version '\' destName '_UIA.exe', '')
             }
+            else if curFile.Hash != HashFile(item.Dest)
+                modifiedFiles .= item.Dest "`n"
         }
+        
+        ; Find any scripts being executed by files that will be overwritten
+        if writeFiles.Has(this.InstallDir '\AutoHotkeyU32.exe') ; Rough check for v1 upgrade
+            writeFiles[this.InstallDir '\AutoHotkey.exe'] := true
+        ours(exe) => writeFiles.Has(exe) || writeFiles.Has(StrReplace(exe, '_UIA'))
+        scripts := this.ScriptsUsingOurFiles(ours)
         
         ; Show confirmation prompt
         message := ""
@@ -810,12 +816,9 @@ class Installation {
     }
     
     UpdateV2Link() {
-        ; Create a stable path for the current v2 directory
-        ; (if a symbolic link can be created)
-        this.DeleteLink link2 := this.InstallDir '\v2\AutoHotkey.exe'
-        this.DeleteLink link := this.InstallDir '\v2'
-        DllCall('CreateSymbolicLink', 'str', link, 'str', 'v' this.Version, 'uint', 1) ; SYMBOLIC_LINK_FLAG_DIRECTORY = 1
-        DllCall('CreateSymbolicLink', 'str', link2, 'str', 'AutoHotkey' (A_Is64bitOS ? '64' : '32') '.exe', 'uint', 0)
+        ; Create a symlink for AutoHotkey.exe to simplify use by tools.
+        DllCall('CreateSymbolicLink', 'str', this.InstallDir '\v2\AutoHotkey.exe'
+            , 'str', 'AutoHotkey' (A_Is64bitOS ? '64' : '32') '.exe', 'uint', 0)
     }
     
     CreateWindowSpyRedirect() {
@@ -931,14 +934,21 @@ class Installation {
         try RegDeleteKey this.UninstallKeyV1
     }
     
+    DisplaceFile(sourcePath, destPath, version) {
+        SplitPath destPath,, &destDir
+        if destDir != ""
+            DirCreate destDir
+        FileMove sourcePath, destPath
+        try this.Hashes.Delete(sourcePath)
+        this.AddFileHash destPath, version
+    }
+    
     DisplaceV1(v) {
         DirCreate dir := 'v' v
         displace(path) {
             if FileExist(path) {
                 SplitPath path, &name
-                FileMove path, dir '\' name
-                try this.Hashes.Delete(path)
-                this.AddFileHash dir '\' name, v
+                this.DisplaceFile path, dir '\' name, v
             }
         }
         for build in ['U32', 'U64', 'A32'] {
