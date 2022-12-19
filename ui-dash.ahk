@@ -37,7 +37,7 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
             , "Compile", "Open Ahk2Exe - convert .ahk to .exe")
         lv.Add("Icon" addIcon("imageres.dll", -99)
             , "Help files (F1)")
-        lv.Add("Icon" addIcon("shell32.dll", -281)
+        lv.Add("Icon" addIcon(A_ScriptDir '\inc\spy.ico', 1)
             , "Window spy")
         lv.Add("Icon" addIcon("imageres.dll", -116)
             , "Launch settings", "Configure how .ahk files are opened")

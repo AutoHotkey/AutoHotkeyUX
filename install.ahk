@@ -71,7 +71,7 @@ class Installation {
     ClassesKey      => this.RootKey '\Software\Classes'
     FileTypeKey     => this.ClassesKey '\' this.ScriptProgId
     UninstallKey    => this.RootKey '\Software\Microsoft\Windows\CurrentVersion\Uninstall\AutoHotkey'
-    StartShortcut   => (this.UserInstall ? A_Programs : A_ProgramsCommon) '\AutoHotkey.lnk'
+    StartFolder     => (this.UserInstall ? A_Programs : A_ProgramsCommon)
     UninstallCmd    => this.CmdStr('UX\ui-uninstall.ahk', ((A_IsAdmin && this.UserInstall) ? '/elevate' : ''))
     QUninstallCmd   => this.CmdStr('UX\install.ahk', '/uninstall /silent')
     
@@ -568,7 +568,7 @@ class Installation {
     
     AddUXFiles() {
         this.AddFiles(this.SourceDir '\UX', 'UX', '*.ahk')
-        this.AddFiles(this.SourceDir '\UX', 'UX\inc', 'inc\*.ahk')
+        this.AddFiles(this.SourceDir '\UX', 'UX\inc', 'inc\*')
         this.AddFiles(this.SourceDir '\UX\Templates', 'UX\Templates', '*.ahk')
         this.AddPostAction this.CreateStartShortcut
     }
@@ -841,12 +841,25 @@ class Installation {
     
     CreateStartShortcut() {
         CreateAppShortcut(
-            lnk := this.StartShortcut,
-            this.Interpreter,
-            Format('"{1}\UX\ui-dash.ahk"', this.InstallDir),
-            "AutoHotkey Dash",
-            this.AppUserModelID,
-            this.UninstallCmd
+            lnk := this.StartFolder '\AutoHotkey.lnk', {
+                target: this.Interpreter,
+                args: Format('"{1}\UX\ui-dash.ahk"', this.InstallDir),
+                desc: "AutoHotkey Dash",
+                aumid: this.AppUserModelID,
+                uninst: this.UninstallCmd
+            }
+        )
+        this.AddFileHash lnk, this.Version
+        
+        CreateAppShortcut(
+            lnk := this.StartFolder '\AutoHotkey Window Spy.lnk', {
+                target: this.Interpreter,
+                args: Format('"{1}\UX\WindowSpy.ahk"', this.InstallDir),
+                desc: "AutoHotkey Window Spy",
+                aumid: 'AutoHotkey.WindowSpy',
+                icon: Format('{1}\UX\inc\spy.ico', this.InstallDir), iconIndex: 0,
+                uninst: this.UninstallCmd
+            }
         )
         this.AddFileHash lnk, this.Version
     }
