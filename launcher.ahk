@@ -125,7 +125,11 @@ TryToInstallVersion(v, r, ScriptPath) {
         else
             downloadable := false
     }
-    ; TODO: detect admin requirement and apply UAC icon
+    if !A_IsAdmin && RegRead('HKLM\SOFTWARE\AutoHotkey', 'InstallDir', "") = ROOT_DIR
+        SetTimer(() => (
+            WinExist('ahk_class #32770 ahk_pid ' ProcessExist()) &&
+            SendMessage(0x160C,, true, 'Button1') ; BCM_SETSHIELD := 0x160C
+        ), -25)
     if MsgBox(m, 'AutoHotkey', downloadable ? 'Iconi y/n' : 'Icon!') != 'yes'
         return false
     if RunWait(Format('"{}" /script "{}\install-version.ahk" "{}"', A_AhkPath, A_ScriptDir, cv)) != 0
