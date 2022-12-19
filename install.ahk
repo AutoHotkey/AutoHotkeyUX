@@ -564,6 +564,7 @@ class Installation {
         this.AddFiles(compilerSourceDir, 'Compiler', 'Ahk2Exe.exe')
         this.AddVerb('Compile', 'Compiler\Ahk2Exe.exe', '/in "%l" %*', "Compile script")
         this.AddVerb('Compile-Gui', 'Compiler\Ahk2Exe.exe', '/gui /in "%l" %*', "Compile script (GUI)...")
+        this.AddPostAction this.CreateCompilerShortcut
     }
     
     AddUXFiles() {
@@ -858,6 +859,18 @@ class Installation {
                 desc: "AutoHotkey Window Spy",
                 aumid: 'AutoHotkey.WindowSpy',
                 icon: Format('{1}\UX\inc\spy.ico', this.InstallDir), iconIndex: 0,
+                uninst: this.UninstallCmd
+            }
+        )
+        this.AddFileHash lnk, this.Version
+    }
+    
+    CreateCompilerShortcut() {
+        CreateAppShortcut(
+            lnk := this.StartFolder '\Ahk2Exe.lnk', {
+                target: this.InstallDir '\Compiler\Ahk2Exe.exe',
+                desc: "Convert .ahk to .exe",
+                aumid: 'AutoHotkey.Ahk2Exe',
                 uninst: this.UninstallCmd
             }
         )

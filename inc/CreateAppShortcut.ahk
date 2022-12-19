@@ -4,7 +4,7 @@ CreateAppShortcut(linkFile, p) {
                     ,'{000214F9-0000-0000-C000-000000000046}') ; IID_IShellLink
     
     ComCall(20, lnk, 'wstr', p.target)
-    ComCall(11, lnk, 'wstr', p.args)
+    ComCall(11, lnk, 'wstr', p.HasProp('args') ? p.args : "")
     ComCall(7, lnk, 'wstr', p.desc)
     if p.HasProp('icon')
         ComCall(17, lnk, 'wstr', p.icon, 'int', p.HasProp('iconIndex') ? p.iconIndex : 0)
