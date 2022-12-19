@@ -183,8 +183,8 @@ ShowHelpFile() {
     m.Add "Online help", (*) => 0
     m.Disable "Online help"
     prefix := main.Count ? "v" : "v&"
-    m.Add prefix "1.1", (*) => Run("https://autohotkey.com/docs/")
-    m.Add prefix "2.0", (*) => Run("https://lexikos.github.io/v2/docs/AutoHotkey.htm")
+    m.Add prefix "1.1", (*) => Run("https://www.autohotkey.com/docs/v1/")
+    m.Add prefix "2.0", (*) => Run("https://www.autohotkey.com/docs/v2/")
     
     if other.Count {
         m.Add "Other files", (*) => 0
