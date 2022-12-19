@@ -80,7 +80,7 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
         if FileExist(chm := ROOT_DIR '\v2\AutoHotkey.chm')
             Run 'hh.exe "ms-its:' chm '::docs/' href '"'
         else
-            Run 'https://lexikos.github.io/v2/docs/' href
+            Run 'https://www.autohotkey.com/docs/v2/' href
     }
     
     SetIntroPref(checkBox, *) {
