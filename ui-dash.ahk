@@ -2,7 +2,7 @@
 ; Run the script to show the GUI.
 #include inc\bounce-v1.ahk
 /* v1 stops here */
-#requires AutoHotkey v2.0-beta.3
+#requires AutoHotkey v2.0
 
 #NoTrayIcon
 #SingleInstance Force

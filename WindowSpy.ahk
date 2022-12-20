@@ -2,7 +2,7 @@
 ; Window Spy for AHKv2
 ;
 
-#Requires AutoHotkey v2.0-beta
+#Requires AutoHotkey v2.0
 
 #NoTrayIcon
 #SingleInstance Ignore

@@ -2,7 +2,7 @@
 ; See the AutoHotkey v2 documentation for usage.
 #include inc\bounce-v1.ahk
 /* v1 stops here */
-#requires AutoHotkey v2.0-rc.3
+#requires AutoHotkey v2.0
 
 #SingleInstance Off ; Needed for elevation with *runas.
 
@@ -832,7 +832,7 @@ class Installation {
                 #include UX
                 #include inc\bounce-v1.ahk
                 /**/
-                #requires AutoHotkey v2.0-beta.3
+                #requires AutoHotkey v2.0
                 try Run('"' A_MyDocuments '\AutoHotkey\WindowSpy.ahk"'), ExitApp()
                 #include WindowSpy.ahk
             )')

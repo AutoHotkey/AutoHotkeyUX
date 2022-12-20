@@ -2,7 +2,7 @@
 ; It scans all .ahk files in a directory and subdirectories, and
 ; shows the detected version and list of matched subpatterns.
 ; Double-click a list item to show how each line-group is matched.
-#requires AutoHotkey v2.0-beta.3
+#requires AutoHotkey v2.0
 
 #NoTrayIcon
 

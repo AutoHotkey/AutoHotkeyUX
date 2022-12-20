@@ -2,7 +2,7 @@
 ; so that the standard registration under HKCR\.ahk can take effect.
 #include inc\bounce-v1.ahk
 /* v1 stops here */
-#requires AutoHotkey v2.0-beta.3
+#requires AutoHotkey v2.0
 
 keyname := "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.ahk\UserChoice"
 initial_progid := RegRead(keyname, "ProgId", "")

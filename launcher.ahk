@@ -1,7 +1,7 @@
 ; This script is intended for indirect use via commands registered by install.ahk.
 ; It can also be compiled as a replacement for AutoHotkey.exe, so tools which run
 ; scripts by executing AutoHotkey.exe can benefit from automatic version selection.
-#requires AutoHotkey v2.0-rc.2
+#requires AutoHotkey v2.0
 
 ;@Ahk2Exe-SetDescription AutoHotkey Launcher
 #SingleInstance Off

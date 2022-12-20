@@ -1,6 +1,6 @@
 ; This script "builds" the regex pattern used by the launcher, runs tests
 ; to ensure errors haven't been introduced, and writes identify_regex.ahk.
-#requires AutoHotkey v2.0-beta.3
+#requires AutoHotkey v2.0
 
 v1_block_comment := '(?m:^[ `t]*/\*(?:.*\R?)+?(?:[ `t]*\*/|.*\Z))'
     ;#region tests
