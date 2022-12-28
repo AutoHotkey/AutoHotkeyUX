@@ -123,8 +123,8 @@ v2_label := v2_name ':' eol
 v1_qstr := '(?>"[^"\r\n]*")+' ; Repeats to handle escape-by-doubling.
 v2_qstr := '(?>
     (Join| `
-        "(?>[^"`\r\n]|`.)*"
-        '(?>[^'`\r\n]|`.)*'(*:v2-sq)
+        "(?>[^"`\r\n]|`["'`])*+"
+        '(?>[^'`\r\n]|`["'`])*+'(*:v2-sq)
     ))'
     ;#region tests
     assert_match v1_qstr, 'x := "one" . "two""``" "three"', ['"one"', '"two""``"', '"three"']
