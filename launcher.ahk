@@ -11,7 +11,7 @@
 #include inc\launcher-common.ahk
 #include inc\ui-base.ahk
 
-if A_ScriptFullPath == A_LineFile {
+if A_ScriptFullPath == A_LineFile || A_LineFile == '*#1' {
     SetWorkingDir A_InitialWorkingDir
     Main
 }
