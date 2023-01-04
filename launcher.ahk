@@ -50,12 +50,8 @@ Main() {
     }
     if !IsSet(ScriptPath)
         && !FileExist(ScriptPath := A_ScriptDir "\AutoHotkey.ahk")
-        && !FileExist(ScriptPath := A_MyDocuments "\AutoHotkey.ahk") {
-        ; TODO: something more useful?
-        if FileExist(A_ScriptDir "\AutoHotkey.chm")
-            Run 'hh.exe "ms-its:' A_ScriptDir '\AutoHotkey.chm::/docs/Welcome.htm"',, 'Max'
-        else
-            Run 'https://lexikos.github.io/v2/docs/Welcome.htm'
+        && !FileExist(ScriptPath := A_MyDocuments "\AutoHotkey.ahk")
+        && !FileExist(ScriptPath := A_ScriptDir "\ui-dash.ahk") {
         ExitApp
     }
     if ScriptPath = '*'
