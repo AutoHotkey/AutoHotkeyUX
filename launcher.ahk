@@ -342,7 +342,9 @@ class VersionSelectGui extends AutoHotkeyUxGui {
     }
     
     Confirm(*) {
-        this.selection := this.files[this['List'].GetNext()]
+        if !(i := this['List'].GetNext())
+            return
+        this.selection := this.files[i]
         this.Hide()
     }
     
