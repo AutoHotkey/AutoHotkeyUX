@@ -115,7 +115,7 @@ TryToInstallVersion(v, r, ScriptPath) {
         bv := v = 1 ? '1.1' : IsInteger(v) ? v '.0' : RegExReplace(v, '^\d+(?:\.\d+)?\b\K.*')
         req := ComObject('Msxml2.XMLHTTP')
         req.open('GET', Format('https://www.autohotkey.com/download/{}/version.txt', bv), false)
-        req.send()
+        try req.send()
         if req.status = 200 && RegExMatch(cv := req.responseText, '^\d+\.[\w\+\-\.]+$') && VerCompare(cv, v) >= 0
             m .= '`n`nWe can try to download and install AutoHotkey v' cv ' for you, while retaining the ability to use the versions already installed.`n`nDownload and install AutoHotkey v' cv '?'
         else
