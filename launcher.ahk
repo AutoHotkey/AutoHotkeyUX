@@ -121,7 +121,7 @@ TryToInstallVersion(v, r, ScriptPath) {
         else
             downloadable := false
     }
-    if !A_IsAdmin && RegRead('HKLM\SOFTWARE\AutoHotkey', 'InstallDir', "") = ROOT_DIR
+    if downloadable && !A_IsAdmin && RegRead('HKLM\SOFTWARE\AutoHotkey', 'InstallDir', "") = ROOT_DIR
         SetTimer(() => (
             WinExist('ahk_class #32770 ahk_pid ' ProcessExist()) &&
             SendMessage(0x160C,, true, 'Button1') ; BCM_SETSHIELD := 0x160C
