@@ -60,7 +60,7 @@ Main() {
 }
 
 GetLaunchParameters(ScriptPath, interactive:=false) {
-    code := FileRead(ScriptPath, 'UTF-8')
+    code := StripComments(ScriptPath, 'UTF-8')
     if RegExMatch(code, 'im)^[ `t]*#Requires[ `t]+AutoHotkey[ `t]+(.*)', &m) {
         ; Replace "; prefer x." with "x" and remove other comments
         prefer := RegExReplace(m.1, 'i);\s*prefer([ `t]+[^;`r`n\.]+)|;.*', '$1')
@@ -90,6 +90,26 @@ GetLaunchParameters(ScriptPath, interactive:=false) {
             lp.switches.Push('/CP65001')
     }
     return lp
+}
+
+StripComments(InputFile, Encoding := "") {
+    FileEncoding Encoding
+    Code := "", CommentSection := false
+    Loop Read InputFile
+    {
+        Line := RegExReplace(A_LoopReadLine, "[ `t]*;.*")
+        if RegExMatch(Line, "^[ `t]*/\*")
+            CommentSection := true
+        else if RegExMatch(Line, "^[ `t]*\*/(.*)", &Match) {
+            CommentSection := false, Line := Match[1]
+            if (Line = "")
+                continue
+        }
+        if !CommentSection {
+            Code .= Line "`r`n"
+        }
+    }
+    return Code
 }
 
 IdentifyAndLaunch(ScriptPath, args, switches) {
