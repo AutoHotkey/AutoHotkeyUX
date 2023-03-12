@@ -65,7 +65,7 @@ GetLaunchParameters(ScriptPath, interactive:=false) {
         ; Replace "; prefer x." with "x" and remove other comments
         prefer := RegExReplace(m.1, 'i);\s*prefer([ `t]+[^;`r`n\.]+)|;.*', '$1')
         ; Extract version requirement
-        if RegExMatch(prefer, '(?<!\S)(?:>=)?v(\d\S+)', &m)
+        if RegExMatch(prefer, 'i)(?<!\S)(?:>=)?v?(\d\S+)', &m)
             v := m.1, prefer := SubStr(prefer, 1, m.Pos-1) . SubStr(prefer, m.Pos + m.Len)
         ; Insert commas as needed
         prefer := RegExReplace(prefer, '[^\s,]\K\s+(?!$)', ",")
