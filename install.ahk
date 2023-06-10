@@ -87,11 +87,10 @@ class Installation {
         if hadInstallDir := this.HasProp('InstallDir')
             DirCreate installDir := this.InstallDir
         else
-            installDir := A_ScriptDir '\..'
+            installDir := IsSet(InstallUtil) ? InstallUtil.DefaultDir : A_ScriptDir '\..'
         Loop Files installDir, 'D'
-            this.InstallDir := installDir := A_LoopFileFullPath
-        else
-            throw ValueError("Invalid target directory",, installDir)
+            installDir := A_LoopFileFullPath
+        this.InstallDir := installDir
         SetRegView 64
         installDirs := []
         for rootKey in ['HKLM', 'HKCU']
