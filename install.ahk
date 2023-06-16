@@ -840,8 +840,10 @@ class Installation {
     }
     
     CreateStartShortcut() {
+        if this.Hashes.Has(this.StartFolder '\AutoHotkey.lnk')
+            try FileDelete this.StartFolder '\AutoHotkey.lnk'
         CreateAppShortcut(
-            lnk := this.StartFolder '\AutoHotkey.lnk', {
+            lnk := this.StartFolder '\AutoHotkey Dash.lnk', {
                 target: this.Interpreter,
                 args: Format('"{1}\UX\ui-dash.ahk"', this.InstallDir),
                 desc: "AutoHotkey Dash",
