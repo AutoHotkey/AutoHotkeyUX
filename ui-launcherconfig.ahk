@@ -174,8 +174,7 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
         }
         RegWrite appname, 'REG_SZ', key 'Open', 'FriendlyAppName'
         RegWrite cmd, 'REG_SZ', key 'Open\Command'
-        if RegRead('HKCR\AutoHotkeyScript\Shell\RunAs',, '')
-            RegWrite cmd, 'REG_SZ', key 'RunAs\Command'
+        RegWrite cmd, 'REG_SZ', key 'RunAs\Command'
     }
 }
 
