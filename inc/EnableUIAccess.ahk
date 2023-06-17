@@ -13,7 +13,7 @@ EnableUIAccess(ExePath) {
             , "uint", 0, "uint", 0x80007 ; FIND_SUBJECT_STR
             , "wstr", CertName, "ptr", cert.ptr, "ptr"))
         && !(DllCall("Crypt32\CryptAcquireCertificatePrivateKey"
-            , "ptr", cert, "uint", 1 ; CRYPT_ACQUIRE_CACHE_FLAG
+            , "ptr", cert, "uint", 5 ; CRYPT_ACQUIRE_CACHE_FLAG|CRYPT_ACQUIRE_COMPARE_KEY_FLAG
             , "ptr", 0, "ptr*", 0, "uint*", &keySpec:=0, "ptr", 0)
             && (keySpec & 2)) { ; AT_SIGNATURE
         ; Keep looking for a certificate with a private key.
