@@ -33,8 +33,12 @@ EnableUIAccess_SetManifest(ExePath) {
     xml.setProperty("SelectionNamespaces"
         , "xmlns:v1='urn:schemas-microsoft-com:asm.v1' "
         . "xmlns:v3='urn:schemas-microsoft-com:asm.v3'")
-    if !xml.load("res://" ExePath "/#24/#1") ; Load current manifest
-        throw Error("File or manifest not found",, ExePath)
+    try
+        if !xml.loadXML(EnableUIAccess_ReadManifest(ExePath))
+            throw Error("Invalid manifest")
+    catch as e
+        throw Error("Error loading manifest from " ExePath,, e.Message "`n  @ " e.File ":" e.Line)
+    
     
     node := xml.selectSingleNode("/v1:assembly/v3:trustInfo/v3:security"
                     . "/v3:requestedPrivileges/v3:requestedExecutionLevel")
@@ -61,6 +65,23 @@ EnableUIAccess_SetManifest(ExePath) {
             break
     }
     throw OSError(A_LastError, "EndUpdateResource")
+}
+
+EnableUIAccess_ReadManifest(ExePath) {
+	if !(hmod := DllCall("LoadLibraryEx", "str", ExePath, "ptr", 0, "uint", 2, "ptr"))
+		throw OSError()
+	try {
+		if !(hres := DllCall("FindResource", "ptr", hmod, "ptr", 1, "ptr", 24, "ptr"))
+			throw OSError()
+		size := DllCall("SizeofResource", "ptr", hmod, "ptr", hres, "uint")
+		if !(hglb := DllCall("LoadResource", "ptr", hmod, "ptr", hres, "ptr"))
+			throw OSError()
+		if !(pres := DllCall("LockResource", "ptr", hglb, "ptr"))
+			throw OSError()
+		return StrGet(pres, size, "utf-8")
+	}
+	finally
+		DllCall("FreeLibrary", "ptr", hmod)
 }
 
 EnableUIAccess_CreateCert(Name, hStore) {
