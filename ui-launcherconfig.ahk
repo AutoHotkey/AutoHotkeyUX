@@ -167,7 +167,9 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
                 return
             if !FileExist(exe)
                 throw
-            cmd := Format('"{1}" {2}"%1" %*', exe, this['CustomUTF8'].Value ? '/cp65001 ' : '')
+            exe_uia := SubStr(exe, 1, -4) "_UIA.exe"
+            switches := this['CustomUTF8'].Visible && this['CustomUTF8'].Value ? '/cp65001 ' : ''
+            cmd := Format('"{1}" {2}"%1" %*', exe, switches)
             ; Deleting FriendlyAppName from HKCU won't work if the installer uses HKLM,
             ; so explicitly set it to the file's description
             appname := GetExeInfo(exe).Description
@@ -175,6 +177,13 @@ class LauncherConfigGui extends AutoHotkeyUxGui {
         RegWrite appname, 'REG_SZ', key 'Open', 'FriendlyAppName'
         RegWrite cmd, 'REG_SZ', key 'Open\Command'
         RegWrite cmd, 'REG_SZ', key 'RunAs\Command'
+        if RegRead('HKCR\AutoHotkeyScript\Shell\UIAccess\Command',, '') {
+            if IsSet(exe_uia) && FileExist(exe_uia)
+                cmd := StrReplace(cmd, exe, exe_uia)
+            else
+                cmd := Format('"{1}" "{2}\launcher.ahk" /runwith UIA "%1" %*', A_AhkPath, A_ScriptDir)
+            RegWrite cmd, 'REG_SZ', key 'UIAccess\Command'
+        }
     }
 }
 
