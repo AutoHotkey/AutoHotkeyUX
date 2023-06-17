@@ -39,7 +39,7 @@ Main() {
         case '/Which':
             A_Args.which := true
             if trace.Enabled
-                trace.DefineProp 'call', {call: (this, s) => OutputDebug(s)} ; Don't use stdout.
+                trace.DefineProp 'call', {call: (this, s) => OutputDebug(s "`n")} ; Don't use stdout.
         case '/iLib', '/include':
             switches.push(arg)
             switches.push(nextArgValue())
