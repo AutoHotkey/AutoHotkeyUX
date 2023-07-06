@@ -17,7 +17,7 @@ if A_LineFile = A_ScriptFullPath
 
 Install_Main() {
     try {
-        inst := Installation()
+        Installation.Instance := inst := Installation()
         method := 'InstallFull'
         params := []
         while A_Index <= A_Args.Length {
