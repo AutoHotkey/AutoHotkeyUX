@@ -106,8 +106,18 @@ class Installation {
             if installDirs[this.UserInstall?2:1]
                 this.InstallDir := installDirs[this.UserInstall?2:1]
             ; Default to the location and mode of any other existing installation
-            else if installDirs[this.UserInstall?1:2]
+            else if installDirs[this.UserInstall?1:2] {
+                if !A_IsAdmin && this.UserInstall {
+                    ; Use the existing all-user installation only if elevation is successful
+                    try
+                        RunWait '*runas ' DllCall('GetCommandLine', 'str')
+                    catch
+                        return ; Presume user cancelled; continue as user
+                    else
+                        ExitApp
+                }
                 this.InstallDir := installDirs[this.UserInstall?1:2], this.UserInstall := !this.UserInstall
+            }
         }
     }
     
