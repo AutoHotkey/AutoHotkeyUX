@@ -35,7 +35,8 @@ WinSpyGui() {
     oGui.Add("Text",,"Status Bar Text:")
     oGui.Add("Edit","w320 r2 ReadOnly vCtrl_SBText")
     oGui.Add("Checkbox","vCtrl_IsSlow","Slow TitleMatchMode")
-    oGui.Add("Text",,"Visible Text:")
+    oGui.Add("Checkbox","xp+160 vCtrl_RapidUpdate","Rapid Update")
+    oGui.Add("Text","xm","Visible Text:")
     oGui.Add("Edit","w320 r2 ReadOnly vCtrl_VisText")
     oGui.Add("Text",,"All Text:")
     oGui.Add("Edit","w320 r2 ReadOnly vCtrl_AllText")
@@ -176,6 +177,10 @@ TryUpdate() {
     
     UpdateText("Ctrl_VisText", ovVisText)
     UpdateText("Ctrl_AllText", ovAllText)
+
+    Ctrl_RapidUpdate := oGui["Ctrl_RapidUpdate"].Value
+    update_speed := Ctrl_RapidUpdate ? 1 : 250
+    SetTimer Update, update_speed
 }
 
 ; ===========================================================================================
@@ -241,4 +246,4 @@ suspend_timer() {
 ~*Ctrl::suspend_timer()
 
 ~*Ctrl up::
-~*Shift up::SetTimer Update, 250
+~*Shift up::SetTimer Update, 1
