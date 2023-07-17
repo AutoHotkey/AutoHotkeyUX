@@ -41,9 +41,9 @@ class IdentifyGui extends Gui {
                 i := {v: '', r: e.Message}
             lv.Add(, A_LoopFileName, A_LoopFileDir, i.v, i.r)
             if A_Index = 1
-                lv.ModifyCol(, 'AutoHdr')
+                lv.ModifyCol()
         }
-        Loop lv.GetCount()
+        Loop 4
             lv.ModifyCol(A_Index, 'AutoHdr')
     }
     Show() {
