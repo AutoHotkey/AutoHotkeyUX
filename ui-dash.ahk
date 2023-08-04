@@ -11,13 +11,14 @@
 #include ui-launcherconfig.ahk
 #include ui-editor.ahk
 #include ui-newscript.ahk
+#include install.ahk
 
 DashRegKey := 'HKCU\Software\AutoHotkey\Dash'
 
 class AutoHotkeyDashGui extends AutoHotkeyUxGui {
     __new() {
         super.__new("AutoHotkey Dash")
-        
+
         lv := this.AddListMenu('vLV LV0x40 w250', ["Name", "Desc"])
         lv.OnEvent("Click", "ItemClicked")
         lv.OnEvent("ItemFocus", "ItemFocused")
@@ -49,13 +50,14 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
         ; lv.Add(, "Downloads", "Get related tools")
         
         lv.AutoSize()
-        lv.GetPos(,,, &h)
+        lv.GetPos(, &y, &w, &h)
         
         if !RegRead(DashRegKey, 'SuppressIntro', false) {
             this.SetFont('s12')
             this.AddText('yp x+m', "Welcome!")
             this.SetFont('s9')
-            this.AddText('xp', "This is the Dash. It provides access to tools, settings and help files.")
+            dashIntro := this.AddText('xp', "This is the Dash. It provides access to tools, settings and help files.")
+            dashIntro.GetPos(,, &dw)
             this.AddText('xp', "To learn how to use AutoHotkey, refer to:")
             this.AddLink('xp', "
             (
@@ -71,9 +73,25 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
             checkBox.GetPos(,,, &hc)
             checkBox.Move(, h - hc)
             checkBox.OnEvent('Click', 'SetIntroPref')
+            
         }
         
-        this.Show("Hide h" (h + this.MarginY*2))
+        if (this.newVersion := IsUpdateAvailable()) {
+            ; ensure the background spans the entire width of the window
+            fullW := (w + (dw ?? 0) + this.MarginX * (2 + IsSet(dw)))
+            this.AddText(Format('vUpdateBanner Backgroundb8e2e7 x0 y{} w{} h30', h + this.MarginY, fullW))
+            
+            ; SysLink controls do not support transparent backgrounds it seems
+            updateLink := this.AddLink('vUpdateLink yp+5 Backgroundb8e2e7', Format('<a>Update available to: {}</a>', this.newVersion))
+            updateLink.OnEvent("Click", 'UpdateVersion')
+            updateLink.GetPos(,, &uw, &uh)
+            updateLink.Move(fullW // 2 - uw // 2)
+            
+            ; remove the margin after the calculations otherwise the background text control won't ever reach the right edge
+            this.MarginX := 0
+        }
+        
+        this.Show("Hide h" (y + h + (uh ?? 0) + this.MarginY * (1 + IsSet(uh))))
     }
     
     LinkClicked(ctrl, id, href) {
@@ -136,6 +154,18 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
         static WM_CHANGEUISTATE := 0x127 ; 295
         SendMessage WM_CHANGEUISTATE, 0x10001, 0, lv
     }
+
+    UpdateVersion(*) {
+        if (RunWait(Format('"{}" /script "{}\install-version.ahk" "{}"', A_AhkPath, A_ScriptDir, this.newVersion))) {
+            ; Error installing
+        }
+        else {
+            this.GetPos(,,, &h)
+            this['UpdateLink'].Enabled := false
+            this['UpdateBanner'].GetPos(,,, &uh)
+            this.Show("h" . (h - uh))
+        }
+    }
 }
 
 ShowHelpFile() {
@@ -195,6 +225,57 @@ ShowHelpFile() {
     
     m.Show
     openIt(f, *) => Run(f)
+}
+
+; lookup latest available versions for each minor version
+getAvailableVersions() {
+    req := ComObject('Msxml2.XMLHTTP')
+    req.open('GET', 'https://www.autohotkey.com/download/versions.txt', false)
+    req.send()
+    
+    if (req.status != 200) {
+        return false
+    }
+
+    try return StrSplit(trim(req.responseText, ' `t`r`n'), '`n', '`r')
+    catch {
+        return false
+    }
+}
+
+; Discover and cache installed versions to determine if any of the available versions are already installed
+findHightestVersionInstalled(refresh := false) {
+    highestVersion := "0.0.0"
+    inst := Installation()
+    inst.ResolveInstallDir()
+    versions := inst.GetComponents()
+
+    for version in versions {
+        if (VerCompare(highestVersion, version) < 0) {
+            highestVersion := version
+        }
+    }
+
+    return highestVersion
+}
+
+IsUpdateAvailable() {
+    verInstalled := findHightestVersionInstalled(true)
+    verAvailable := getAvailableVersions()
+    
+    if (!verAvailable) {
+        return false
+    }
+
+    verToSuggest := ""
+    for v in verAvailable {
+        if (VerCompare(v, verInstalled) > 0) {
+            verToSuggest := v
+            break ; stop at the first version that's greater than the highest installed
+        }
+    }
+
+    return verToSuggest
 }
 
 AutoHotkeyDashGui.Show()
