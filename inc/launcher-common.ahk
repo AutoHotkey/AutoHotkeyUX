@@ -51,10 +51,9 @@ ReadHashes(path, filter?) {
     return filemap
 }
 
-; Added override to refresh from csv after a new version has been installed
-GetUsableAutoHotkeyExes(reset := false) {
+GetUsableAutoHotkeyExes() {
     static files
-    if IsSet(files) && !reset {
+    if IsSet(files) {
         trace '![Launcher] returning hashes again'
         return files
     }

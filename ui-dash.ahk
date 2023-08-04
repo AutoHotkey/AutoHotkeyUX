@@ -11,7 +11,6 @@
 #include ui-launcherconfig.ahk
 #include ui-editor.ahk
 #include ui-newscript.ahk
-#include ui-installer.ahk
 
 DashRegKey := 'HKCU\Software\AutoHotkey\Dash'
 
@@ -44,8 +43,8 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
             , "Launch settings", "Configure how .ahk files are opened")
         lv.Add("Icon" addIcon("notepad.exe", 1)
             , "Editor settings", "Set your default script editor")
-        lv.Add("Icon" addIcon("mmc.exe")
-            , "Maintenance", "Repair settings or add/remove versions")
+        ; lv.Add("Icon" addIcon("mmc.exe")
+        ;     , "Maintenance", "Repair settings or add/remove versions")
         ; lv.Add(, "Auto-start", "Run scripts automatically at logon")
         ; lv.Add(, "Downloads", "Get related tools")
         
@@ -130,8 +129,6 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
             LauncherConfigGui.Show()
         case "Editor":
             DefaultEditorGui.Show()
-        case "Maintenance":
-            VersionInstallerGui.Show()
         }
     }
     
