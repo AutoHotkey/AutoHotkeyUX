@@ -337,6 +337,10 @@ classification_regex := (
         '(?!' line_of_v2_expr_chars ')(?&v1_fin)' end_v1('char'),
         '(?i:else|try|finally)(?![^ `t`r`n])' ws0 '\{?' skip,  ; Skip these to permit a same-line statement.
         '(?i:return|for|while|until|throw|switch)' ws1 '(?&expm)',
+        ; Avoid interpreting the following as function definitions.  v1 only supports this
+        ; for 'if' and 'while', and interprets the rest as function calls or definitions
+        ; (but we just ignore them all to be safe and simple).
+        '(?i:if|while|return|until|loop|goto)(?=\()(?&expm)',
         '(?i:local|global|static)(?!' v1_name_char ')' alt(
             ; Detect 'local x := y' as an expression and call exp to check for ' and =>.
             ; ':=' is required rather than '=', though only for the first var since verifying
