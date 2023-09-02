@@ -23,6 +23,8 @@ WinSpyGui() {
     oGui.OnEvent("Close",WinSpyClose)
     oGui.OnEvent("Size",WinSpySize)
     
+    oGui.SetFont('s9', "Segoe UI")
+    
     oGui.Add("Text",,"Window Title, Class and Process:")
     oGui.Add("Checkbox","yp xp+200 w120 Right vCtrl_FollowMouse","Follow Mouse").Value := 1
     oGui.Add("Edit","xm w320 r5 ReadOnly -Wrap vCtrl_Title")
