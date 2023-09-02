@@ -58,13 +58,14 @@ eol := '(?=' ws0 '(?:' line_comment ')?(?m:$))'
 ; This doesn't take into account that v2 takes the first unescaped :: while v1 takes
 ; the last :: (except that in a sequence of 3+ colons, it ignores the last : if odd).
 hs_label := ':[[:alnum:]\?\*\- ]*:.*(?<!``)::'
-hs_label_or_autoreplace := iif('?=:[^\:`r`n]*[xX]', hs_label, hs_label '.*')
+hs_label_is_x := ':[^\:`r`n]*[xX]'
+hs_label_or_autoreplace(r) => iif('?=' hs_label_is_x, hs_label, hs_label '(?:' r ')')
     ;#region tests
     assert_match hs_label, ':*:btw::by the way', ':*:btw::'
     assert_match hs_label, ':B0*:abbrev::iation', ':B0*:abbrev::'
     assert_match hs_label, '::foo`:::bar', '::foo:::'
     assert_match hs_label, '::foo:::bar', '::foo:::'
-    assert_match 'm)^' hs_label_or_autoreplace, '
+    assert_match 'm)^' hs_label_or_autoreplace('.*'), '
     (
         :*:btw::by the way
         :?x*:``:``:::typed_hotkey()
@@ -314,7 +315,7 @@ classification_regex := (
             '(?&eol)(?!(?&tosol)' ws0 alt('[\{#]', '.*?::', v2_name '\(') ')' end_v1('hk'),
             end_either('hotkey')
         ),
-        hs_label_or_autoreplace end_either('hotstring'),
+        hs_label_or_autoreplace('(?&v1_cont)|.*') end_either('hotstring'),
         v2_label end_either('label'),
         v1_label end_v1('lbl'),
         '#' alt(
