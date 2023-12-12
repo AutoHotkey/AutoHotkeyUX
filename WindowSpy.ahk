@@ -30,7 +30,7 @@ WinSpyGui() {
     oGui.Add("Edit","w320 r4 ReadOnly vCtrl_MousePos")
     oGui.Add("Text","w320 vCtrl_CtrlLabel",(txtFocusCtrl := "Focused Control") ":")
     oGui.Add("Edit","w320 r4 ReadOnly vCtrl_Ctrl")
-    oGui.Add("Text",,"Active Window Postition:")
+    oGui.Add("Text",,"Active Window Position:")
     oGui.Add("Edit","w320 r2 ReadOnly vCtrl_Pos")
     oGui.Add("Text",,"Status Bar Text:")
     oGui.Add("Edit","w320 r2 ReadOnly vCtrl_SBText")
