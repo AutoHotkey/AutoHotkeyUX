@@ -57,7 +57,7 @@ eol := '(?=' ws0 '(?:' line_comment ')?(?m:$))'
 ; interpreted as continuation, but instead as a hotstring even with invalid options.
 ; This doesn't take into account that v2 takes the first unescaped :: while v1 takes
 ; the last :: (except that in a sequence of 3+ colons, it ignores the last : if odd).
-hs_label := ':[[:alnum:]\?\*\- ]*:.*(?<!``)::'
+hs_label := ':[[:alnum:]\?\*\- ]*:([^```r`n]+|``.)*?::'
 hs_label_is_x := ':[^\:`r`n]*[xX]'
 hs_label_or_autoreplace(r) => iif('?=' hs_label_is_x, hs_label, hs_label '(?:' r ')')
     ;#region tests
@@ -65,6 +65,7 @@ hs_label_or_autoreplace(r) => iif('?=' hs_label_is_x, hs_label, hs_label '(?:' r
     assert_match hs_label, ':B0*:abbrev::iation', ':B0*:abbrev::'
     assert_match hs_label, '::foo`:::bar', '::foo:::'
     assert_match hs_label, '::foo:::bar', '::foo:::'
+    assert_match hs_label, '::a````::b', '::a````::'
     assert_match 'm)^' hs_label_or_autoreplace('.*'), '
     (
         :*:btw::by the way

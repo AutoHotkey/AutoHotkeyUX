@@ -231,6 +231,7 @@ tests := [
     'while(Key = -1){'
 ]},
 {v: 0, t: ['::x::`n(`n``:``*``:EntryShortcutHere``:``:EntryHere`n)']},
+{v: 0, t: ['::a````::b']},
 ]
 
 run_tests
