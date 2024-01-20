@@ -232,6 +232,10 @@ tests := [
 ]},
 {v: 0, t: ['::x::`n(`n``:``*``:EntryShortcutHere``:``:EntryHere`n)']},
 {v: 0, t: ['::a````::b']},
+{v: 0, t: ['::b::Send % SubStr("a", 1)']},  ; this is autoreplace
+{v: 0, t: ['::b::Send SubStr("a", 1)']},
+{v: 1, t: [':x:b::Send % SubStr("a", 1)']},
+{v: 0, t: ['::x::Send SubStr("a", 1)']},
 ]
 
 run_tests
@@ -266,16 +270,20 @@ run_tests() {
     test_v(test, v) {
         if test.HasProp('t')
         for str in test.t {
-            for m in matches(str, classification_regex) {
-                if v && InStr(m.Mark, v)
-                    continue 2
-                else if SubStr(m.Mark,1,1) = 'v' {
-                    test_failed('expected v' v ', got ' m.Mark, str)
-                    continue 2
+            try {
+                for m in matches(str, classification_regex) {
+                    if v && InStr(m.Mark, v)
+                        continue 2
+                    else if SubStr(m.Mark,1,1) = 'v' {
+                        test_failed('expected v' v ', got ' m.Mark, str)
+                        continue 2
+                    }
                 }
+                if v
+                    test_failed('expected v' v, str)
             }
-            if v
-                test_failed('expected v' v, str)
+            catch as e
+                test_failed(type(e) ': ' e.Message ' ' e.Extra, str)
         }
         if test.HasProp('f')
         for str in test.f {
