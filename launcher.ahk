@@ -74,6 +74,10 @@ GetLaunchParameters(ScriptPath, interactive:=false) {
         if i.v
             require := String(i.v)
         rule := i.r
+        if rule = "error"
+            MsgBox "Syntax detection has failed due to an error in the launcher.`n`n" Type(i.err) ": " i.err.Message " " i.err.Extra "`n`n"
+                . "Character index " i.pos "`n" SubStr(code, i.pos, 50) "`n...`n`n"
+                . "Please report this on the forums, with sample code that triggers the error.", "AutoHotkey Launcher", "icon!"
     }
     else {
         trace "![Launcher] version unknown - syntax-checking is disabled"
