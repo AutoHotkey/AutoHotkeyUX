@@ -152,8 +152,8 @@ IdentifyAndLaunch(ScriptPath, args, switches) {
 TryToInstallVersion(v, r, ScriptPath, require, prefer) {
     ; This is currently designed only for downloading the latest bug-fix of a given minor version.
     SplitPath ScriptPath, &name
-    m := ' script you are trying to run requires AutoHotkey v' v ', which is not installed.`n`nScript:`t' name
-    m := !(r && r != '#Requires') ? 'The' m : 'It looks like the' m '`nRule:`t' r
+    m := ' script you are trying to run requires AutoHotkey v' v ', which is not installed.'
+    m := !(r && r != '#Requires') ? 'The' m '`n`nScript:`t' name : 'It looks like the' m '`nIf the version has been misidentified, please add a #Requires directive to your script file.`n`nScript:`t' name '`nRule:`t' r
     if downloadable := IsNumber(v) || VerCompare(v, '1.1.24.02') >= 0 {
         ; Get current version compatible with v.
         bv := v = 1 ? '1.1' : IsInteger(v) ? v '.0' : RegExReplace(v, '^\d+(?:\.\d+)?\b\K.*')
