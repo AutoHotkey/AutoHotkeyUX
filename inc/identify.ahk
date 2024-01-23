@@ -3,15 +3,17 @@
 IdentifyBySyntax(code) {
     static identify_regex := get_identify_regex()
     p := 1, count_1 := count_2 := 0, version := marks := ''
-    while (p := RegExMatch(code, identify_regex, &m, p)) {
-        p += m.Len()
-        if SubStr(m.mark,1,1) = 'v' {
-            switch SubStr(m.mark,2,1) {   
-            case '1': count_1++
-            case '2': count_2++
+    try {
+        while (p := RegExMatch(code, identify_regex, &m, p)) {
+            p += m.Len()
+            if SubStr(m.mark,1,1) = 'v' {
+                switch SubStr(m.mark,2,1) {   
+                case '1': count_1++
+                case '2': count_2++
+                }
+                if !InStr(marks, m.mark)
+                    marks .= m.mark ' '
             }
-            if !InStr(marks, m.mark)
-                marks .= m.mark ' '
         }
     }
     if !(count_1 || count_2)
