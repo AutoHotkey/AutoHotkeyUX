@@ -109,9 +109,9 @@ EnableUIAccess_CreateCert(Name, hStore) {
     }
     cnb := Buffer(2*A_PtrSize), NumPut("ptr", cbName, "ptr", pbName, cnb)
 
-    endTime := Buffer(16)
-    DllCall("GetSystemTime", "ptr", endTime)
-    NumPut("ushort", NumGet(endTime, "ushort") + 10, endTime) ; += 10 years
+    ; Set expiry to 9999-01-01.
+    NumPut('short', 9999, 'short', 1, 'short', 5, 'short', 1, 'short'
+        , 23, 'short', 59, 'short', 59, 'short', 999, endTime := Buffer(16))
 
     if !hCert := DllCall("Crypt32\CertCreateSelfSignCertificate"
         , "ptr", prov, "ptr", cnb, "uint", 0, "ptr", 0
