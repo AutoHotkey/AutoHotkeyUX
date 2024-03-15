@@ -904,7 +904,7 @@ class Installation {
             catch as e {
                 try FileDelete newPath
                 if e.What != "EndUpdateResource"
-                    throw
+                    throw e
                 if this.Silent {
                     if A_Index > 4
                         break
