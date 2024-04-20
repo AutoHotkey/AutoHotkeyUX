@@ -792,10 +792,10 @@ class Installation {
         SendMessage(0xBAAD, ObjPtr(err), 0, A_ScriptHwnd),
         OnMessage(0xBAAD, newthread, 0)
         newthread(ep, *) {
-            if ep {
+            if ep
                 throw ObjFromPtrAddRef(ep)
-                return 0
-            }
+            if ep ; This line prevents an "unreachable" warning in v2.0.
+                return 0 ; This line prevents continuation of the function in v2.1-alpha.3+ (if user selects Continue).
             DetectHiddenWindows true
             WinExist "ahk_class #32770 ahk_pid " ProcessExist()
             Loop 5
