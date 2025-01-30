@@ -11,24 +11,9 @@ class AutoHotkeyUxGui extends Gui {
         c := this.AddListView(UxListMenu.DefaultOptions ' ' options, columns)
         if !InStr(options, 'Theme')
             DllCall("uxtheme\SetWindowTheme", "ptr", c.hwnd, "wstr", "Explorer", "ptr", 0)
-        static LVTVIM_TILESIZE := 1, LVTVIM_COLUMNS := 2, LVTVIM_LABELMARGIN := 4
-        static LVTVIF_AUTOSIZE := 0, LVTVIF_EXTENDED := 4, LVTVIF_FIXEDHEIGHT := 2
-            , LVTVIF_FIXEDSIZE := 3, LVTVIF_FIXEDWIDTH := 1
-        static LVM_SETTILEVIEWINFO := 0x10A2
-        tileviewinfo := Buffer(40, 0)
-        ControlGetPos(,, &w,, c)
-        pad := 2 * A_ScreenDPI // 96
-        NumPut(
-            'uint', 40, ; cbSize
-            'uint', LVTVIM_LABELMARGIN | LVTVIM_TILESIZE, ; dwMask
-            'uint', LVTVIF_FIXEDWIDTH, ; dwFlags
-            'int', w, 'int', 0, ; sizeTile
-            'int', 0, ; cLines
-            'int', pad, 'int', pad, 'int', pad, 'int', pad, ; rcLabelMargin
-            tileviewinfo
-        )
-        SendMessage LVM_SETTILEVIEWINFO,, tileviewinfo, c
         c.base := UxListMenu.Prototype
+        ControlGetPos(,, &w,, c)
+        c._SetTileWidth(w)
         return c
     }
     
