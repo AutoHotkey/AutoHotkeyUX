@@ -1,6 +1,8 @@
 class AutoHotkeyUxGui extends Gui {
     __new(title, opt:='') {
+        try dhb := DllCall("SetThreadDpiHostingBehavior", 'int', 1) ; Enable mixed DPI awareness
         super.__new(opt, title, this)
+        IsSet(dhb) && DllCall("SetThreadDpiHostingBehavior", 'int', dhb) ; Restore previous value
         this.SetFont('s9', "Segoe UI")
         this.OnEvent('Escape', 'Destroy')
         this.OnEvent('Close', 'Destroy')
@@ -8,7 +10,9 @@ class AutoHotkeyUxGui extends Gui {
     
     AddListMenu(options:='', columns:=unset) {
         IsSet(columns) || columns := []
+        try dac := DllCall("SetThreadDpiAwarenessContext", 'ptr', -2, 'ptr') ; System DPI aware, not per-monitor
         c := this.AddListView(UxListMenu.DefaultOptions ' ' options, columns)
+        IsSet(dac) && DllCall("SetThreadDpiAwarenessContext", 'ptr', dac, 'ptr') ; Restore previous value
         if !InStr(options, 'Theme')
             DllCall("uxtheme\SetWindowTheme", "ptr", c.hwnd, "wstr", "Explorer", "ptr", 0)
         c.base := UxListMenu.Prototype
