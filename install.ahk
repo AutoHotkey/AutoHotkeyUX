@@ -459,12 +459,11 @@ class Installation {
                 hasChm := true
             if !(curFile := hashes.Get(item.Dest, ''))
                 unknownFiles .= item.Dest "`n"
-            else if destDir = 'v2' && curFile.Version && curFile.Version != this.Version {
-                this.AddPreAction this.DisplaceFile.Bind(, item.Dest
-                    , 'v' curFile.Version '\' destName '.' ext, curFile.Version)
+            else if destDir = 'v2' && curFile.Version && curFile.Version != this.Version 
+                && !FileExist((newDirAndName := 'v' curFile.Version '\' destName) '.' ext) {
+                this.AddPreAction this.DisplaceFile.Bind(, item.Dest, newDirAndName '.' ext, curFile.Version)
                 if ext = 'exe' && FileExist('v2\' destName '_UIA.exe')
-                    this.AddPreAction this.DisplaceFile.Bind(, 'v2\' destName '_UIA.exe'
-                        , 'v' curFile.Version '\' destName '_UIA.exe', '')
+                    this.AddPreAction this.DisplaceFile.Bind(, 'v2\' destName '_UIA.exe', newDirAndName '_UIA.exe', '')
             }
             else if curFile.Hash != HashFile(item.Dest)
                 modifiedFiles .= item.Dest "`n"
