@@ -73,6 +73,7 @@ class Installation {
     QUninstallCmd   => this.CmdStr('UX\install.ahk', '/uninstall /silent')
     
     DialogTitle     => this.ProductName " Setup"
+    DialogOptions   := 'Owner' WinExist(this.DialogTitle ' ahk_pid ' ProcessGetParent())
     
     FileItems       := [] ; [{Source, Dest}]
     RegItems        := [] ; [{Key, ValueName, Value}]
@@ -771,23 +772,23 @@ class Installation {
     }
     
     GetConfirmation(message, icon:='!') {
-        if !this.Silent && MsgBox(message, this.DialogTitle, 'Icon' icon ' OkCancel') = 'Cancel'
+        if !this.Silent && MsgBox(message, this.DialogTitle, this.DialogOptions ' Icon' icon ' OkCancel') = 'Cancel'
             ExitApp 1
     }
     
     WarnBox(message) {
         if !this.Silent
-            MsgBox message, this.DialogTitle, "Icon!"
+            MsgBox message, this.DialogTitle, this.DialogOptions ' Icon!'
     }
     
     InfoBox(message) {
         if !this.Silent
-            MsgBox message, this.DialogTitle, "Iconi"
+            MsgBox message, this.DialogTitle, this.DialogOptions ' Iconi'
     }
     
     FatalError(message) {
         if !this.Silent
-            MsgBox message, this.DialogTitle, 'Iconx'
+            MsgBox message, this.DialogTitle, this.DialogOptions ' Iconx'
         ExitApp 1
     }
     
