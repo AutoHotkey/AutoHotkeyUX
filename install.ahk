@@ -277,8 +277,14 @@ class Installation {
         if FileExist(this.InstallDir '\UX\reset-assoc.ahk')
             RunWait this.CmdStr('UX\reset-assoc.ahk', '/check')
         
-        if !this.Silent
-            ShellRun this.Interpreter, 'UX\ui-dash.ahk', this.InstallDir
+        if !this.Silent {
+            try if !installedVersion {
+                ; This can fail if explorer.exe isn't running.
+                ShellRun this.Interpreter, 'UX\ui-dash.ahk', this.InstallDir
+                return
+            }
+            this.InfoBox "AutoHotkey v" this.Version " is now installed."
+        }
     }
     
     InstallExtraVersion() {
