@@ -72,7 +72,7 @@ class NewScriptGui extends AutoHotkeyUxGui {
             if !(wParam = VK_UP || wParam = VK_DOWN)
                 return
             gc := GuiCtrlFromHwnd(hwnd)
-            if gc.Gui is NewScriptGui && gc is Gui.Edit {
+            if gc && gc.Gui is NewScriptGui && gc is Gui.Edit {
                 PostMessage nmsg, wParam, lParam, gc.Gui['LV']
                 return true
             }
