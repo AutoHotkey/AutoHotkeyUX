@@ -136,8 +136,8 @@ TryUpdate() {
     
     if (curCtrl) {
         ctrlTxt := ControlGetText(curCtrl)
-        WinGetClientPos(&sX, &sY, &sW, &sH, curCtrl)
-        ControlGetPos &cX, &cY, &cW, &cH, curCtrl
+        WinGetClientPos(&sX, &sY, &cW, &cH, curCtrl)
+        ControlGetPos &cX, &cY, &sW, &sH, curCtrl
         
         cText := "ClassNN:`t" curCtrlClassNN "`n"
                . "Text:`t" textMangle(ctrlTxt) "`n"
