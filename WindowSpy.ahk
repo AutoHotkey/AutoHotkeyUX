@@ -17,6 +17,7 @@ WinSpyGui() {
     Global oGui
     
     try TraySetIcon "inc\spy.ico"
+    try TraySetIcon "UX\inc\spy.ico" ; for CreateWindowSpyRedirect
     DllCall("shell32\SetCurrentProcessExplicitAppUserModelID", "wstr", "AutoHotkey.WindowSpy")
     
     oGui := Gui("AlwaysOnTop Resize MinSize +DPIScale","Window Spy for AHKv2")
