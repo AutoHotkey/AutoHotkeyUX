@@ -17,6 +17,7 @@ WinSpyGui() {
     Global oGui
     
     try TraySetIcon "inc\spy.ico"
+    try TraySetIcon "UX\inc\spy.ico" ; for CreateWindowSpyRedirect
     DllCall("shell32\SetCurrentProcessExplicitAppUserModelID", "wstr", "AutoHotkey.WindowSpy")
     
     oGui := Gui("AlwaysOnTop Resize MinSize +DPIScale","Window Spy for AHKv2")
@@ -135,8 +136,8 @@ TryUpdate() {
     
     if (curCtrl) {
         ctrlTxt := ControlGetText(curCtrl)
-        WinGetClientPos(&sX, &sY, &sW, &sH, curCtrl)
-        ControlGetPos &cX, &cY, &cW, &cH, curCtrl
+        WinGetClientPos(&sX, &sY, &cW, &cH, curCtrl)
+        ControlGetPos &cX, &cY, &sW, &sH, curCtrl
         
         cText := "ClassNN:`t" curCtrlClassNN "`n"
                . "Text:`t" textMangle(ctrlTxt) "`n"
