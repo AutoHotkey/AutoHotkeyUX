@@ -77,7 +77,7 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
         }
         
         if (this.newVersion := IsUpdateAvailable()) {
-            ; ensure the background spans the entire width of the window
+            ; Ensure the background spans the entire width of the window
             fullW := (w + (dw ?? 0) + this.MarginX * (2 + IsSet(dw)))
             this.AddText(Format('vUpdateBanner Backgroundb8e2e7 x0 y{} w{} h30', h + this.MarginY, fullW))
             
@@ -87,7 +87,7 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
             updateLink.GetPos(,, &uw, &uh)
             updateLink.Move(fullW // 2 - uw // 2)
             
-            ; remove the margin after the calculations otherwise the background text control won't ever reach the right edge
+            ; Remove the margin after the calculations otherwise the background text control won't ever reach the right edge
             this.MarginX := 0
         }
         
@@ -158,8 +158,7 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
     UpdateVersion(*) {
         if (RunWait(Format('"{}" /script "{}\install-version.ahk" "{}"', A_AhkPath, A_ScriptDir, this.newVersion))) {
             ; Error installing
-        }
-        else {
+        } else {
             this.GetPos(,,, &h)
             this['UpdateLink'].Enabled := false
             this['UpdateBanner'].GetPos(,,, &uh)
@@ -227,8 +226,8 @@ ShowHelpFile() {
     openIt(f, *) => Run(f)
 }
 
-; lookup latest available versions for each minor version
-getAvailableVersions() {
+; Lookup latest available versions for each minor version
+GetAvailableVersions() {
     req := ComObject('Msxml2.XMLHTTP')
     req.open('GET', 'https://www.autohotkey.com/download/versions.txt', false)
     req.send()
@@ -244,7 +243,7 @@ getAvailableVersions() {
 }
 
 ; Discover and cache installed versions to determine if any of the available versions are already installed
-findHightestVersionInstalled(refresh := false) {
+FindHighestVersionInstalled(refresh := false) {
     highestVersion := "0.0.0"
     inst := Installation()
     inst.ResolveInstallDir()
@@ -260,8 +259,8 @@ findHightestVersionInstalled(refresh := false) {
 }
 
 IsUpdateAvailable() {
-    verInstalled := findHightestVersionInstalled(true)
-    verAvailable := getAvailableVersions()
+    verInstalled := FindHighestVersionInstalled(true)
+    verAvailable := GetAvailableVersions()
     
     if (!verAvailable) {
         return false
@@ -271,7 +270,7 @@ IsUpdateAvailable() {
     for v in verAvailable {
         if (VerCompare(v, verInstalled) > 0) {
             verToSuggest := v
-            break ; stop at the first version that's greater than the highest installed
+            break ; Stop at the first version that's greater than the highest installed
         }
     }
 
