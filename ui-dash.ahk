@@ -56,8 +56,7 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
             this.SetFont('s12')
             this.AddText('yp x+m', "Welcome!")
             this.SetFont('s9')
-            dashIntro := this.AddText('xp', "This is the Dash. It provides access to tools, settings and help files.")
-            dashIntro.GetPos(,, &dw)
+            this.AddText('xp vIntroText', "This is the Dash. It provides access to tools, settings and help files.")
             this.AddText('xp', "To learn how to use AutoHotkey, refer to:")
             this.AddLink('xp', "
             (
@@ -76,22 +75,32 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
             
         }
         
-        if (this.newVersion := IsUpdateAvailable()) {
-            ; Ensure the background spans the entire width of the window
-            fullW := (w + (dw ?? 0) + this.MarginX * (2 + IsSet(dw)))
-            this.AddText(Format('vUpdateBanner Backgroundb8e2e7 x0 y{} w{} h30', h + this.MarginY, fullW))
-            
-            ; SysLink controls do not support transparent backgrounds it seems
-            updateLink := this.AddLink('vUpdateLink yp+5 Backgroundb8e2e7', Format('<a>Update available to: {}</a>', this.newVersion))
-            updateLink.OnEvent("Click", 'UpdateVersion')
-            updateLink.GetPos(,, &uw, &uh)
-            updateLink.Move(fullW // 2 - uw // 2)
-            
-            ; Remove the margin after the calculations otherwise the background text control won't ever reach the right edge
-            this.MarginX := 0
-        }
+        this.Show("Hide h" (h + this.MarginY*2))
         
-        this.Show("Hide h" (y + h + (uh ?? 0) + this.MarginY * (1 + IsSet(uh))))
+        CheckAvailableVersions(receiveVersions)
+        receiveVersions(v) {
+            if v := IsUpdateAvailable(v)
+                this.ShowUpdateBanner(v)
+        }
+    }
+    
+    ShowUpdateBanner(version) {
+        if !DllCall('IsWindowVisible', 'uint', this.Hwnd)
+            return
+        
+        this.newVersion := version
+        
+        this['LV'].GetPos(, &y,, &h)
+        this.GetClientPos(,, &gw, &gh)
+        this.AddText(Format('vUpdateBanner Backgroundb8e2e7 x0 y{} w{} h30', gh, gw))
+        
+        ; SysLink controls do not support transparent backgrounds it seems
+        updateLink := this.AddLink('vUpdateLink yp+5 Backgroundb8e2e7', Format('<a>Update available to: {}</a>', this.newVersion))
+        updateLink.OnEvent('Click', 'UpdateVersion')
+        updateLink.GetPos(,, &uw)
+        updateLink.Move(gw // 2 - uw // 2)
+        
+        this.Show('h' gh + 30)
     }
     
     LinkClicked(ctrl, id, href) {
@@ -226,28 +235,28 @@ ShowHelpFile() {
 }
 
 ; Lookup latest available versions for each minor version
-GetAvailableVersions() {
-    req := ComObject('Msxml2.XMLHTTP')
-    req.open('GET', 'https://www.autohotkey.com/download/versions.txt', false)
-    req.send()
-    
-    if (req.status != 200) {
-        return false
+CheckAvailableVersions(successCallback) {
+    try {
+        req := ComObject('Msxml2.XMLHTTP')
+        req.open('GET', 'https://www.autohotkey.com/download/versions.txt', true)
+        req.onreadystatechange := readyStateChange
+        req.send()
     }
-
-    try return StrSplit(trim(req.responseText, ' `t`r`n'), '`n', '`r')
-    catch {
-        return false
+    readyStateChange() {
+        if req.readyState != 4
+            return
+        req.onreadystatechange := ComValue(13,0)
+        v := req.status = 200 ? req.responseText : ""
+        if v ~= '^(\d\..*\R)+$'
+            successCallback(StrSplit(Trim(v, '`r`n'), '`n', '`r'))
     }
 }
 
-IsUpdateAvailable() {
+; Determine whether any one of the available versions is an update
+IsUpdateAvailable(verAvailable) {
     inst := Installation()
     inst.ResolveInstallDir()
     verInstalled := inst.GetComponents().maxes
-    verAvailable := GetAvailableVersions()
-    if !verAvailable
-        return false
     
     verMax := ""
     for v in verInstalled
