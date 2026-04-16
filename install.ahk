@@ -105,7 +105,7 @@ class Installation {
                 this.InstallDir := installDirs[this.UserInstall?2:1]
             ; Default to the location and mode of any other existing installation
             else if installDirs[this.UserInstall?1:2] {
-                if !A_IsAdmin && this.UserInstall {
+                if this.UserInstall && Installation.HasProp('Instance') && !A_IsAdmin {
                     ; Use the existing all-user installation only if elevation is successful
                     try
                         RunWait '*runas ' DllCall('GetCommandLine', 'str')
