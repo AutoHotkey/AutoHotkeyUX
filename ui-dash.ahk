@@ -77,7 +77,8 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
         
         this.Show("Hide h" (h + this.MarginY*2))
         
-        CheckAvailableVersions(receiveVersions)
+        if RegRead(DashRegKey, 'CheckForUpdates', false)
+            CheckAvailableVersions(receiveVersions)
         receiveVersions(v) {
             if v := IsUpdateAvailable(v)
                 this.ShowUpdateBanner(v)
