@@ -90,7 +90,10 @@ InstallAutoHotkey(version) {
             if VerCompare(localUX.Version, version) < 0
                 && FileExist(inst.SourceDir '\UX\install.ahk')
                 && FileExist(inst.SourceDir '\AutoHotkey32.exe') {
-                Run Format('"{1}\AutoHotkey32.exe" UX\install.ahk /to "{2}"', inst.SourceDir, inst.InstallDir), inst.SourceDir
+                ; Launch install, exit to avoid conflict, use cmd to delete tempDir
+                Run Format('"{3}" /c ""{1}\AutoHotkey32.exe" "{1}\UX\install.ahk" /to "{2}" & '
+                    . 'rmdir /s /q "{4}\v{5}" & rmdir "{4}""'
+                    , inst.SourceDir, inst.InstallDir, A_ComSpec, tempDir, version), inst.InstallDir, "Hide"
                 ExitApp
             }
             else
