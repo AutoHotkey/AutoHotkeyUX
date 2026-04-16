@@ -741,7 +741,7 @@ class Installation {
         callerwd := A_WorkingDir
         SetWorkingDir this.InstallDir
         versions := Map()
-        maxes := Map()
+        versions.maxes := maxes := Map()
         for , fh in this.Hashes {
             if fh.Path ~= 'i)^UX\\|^[A-Z]:|^\\\\|^(WindowSpy\.ahk|license\.txt)$'
                 . '|^Compiler\\(?!.*\.bin$)'

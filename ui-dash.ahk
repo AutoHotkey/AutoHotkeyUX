@@ -241,35 +241,29 @@ GetAvailableVersions() {
     }
 }
 
-; Discover and cache installed versions to determine if any of the available versions are already installed
-FindHighestVersionInstalled(refresh := false) {
-    highestVersion := "0.0.0"
+IsUpdateAvailable() {
     inst := Installation()
     inst.ResolveInstallDir()
-    versions := inst.GetComponents()
-
-    for version in versions {
-        if (VerCompare(highestVersion, version) < 0) {
-            highestVersion := version
-        }
-    }
-
-    return highestVersion
-}
-
-IsUpdateAvailable() {
-    verInstalled := FindHighestVersionInstalled(true)
+    verInstalled := inst.GetComponents().maxes
     verAvailable := GetAvailableVersions()
-    
-    if (!verAvailable) {
+    if !verAvailable
         return false
-    }
+    
+    verMax := ""
+    for v in verInstalled
+        verMax := v
 
+    ; Find a version to suggest:
+    ;  - Bug-fix update for an installed minor version
+    ;  - New minor version greater than any installed, and not alpha
     verToSuggest := ""
     for v in verAvailable {
-        if (VerCompare(v, verInstalled) > 0) {
+        vm := RegExReplace(v, '^\d+\.\d+\b\K.*')
+        vi := verInstalled.Get(vm, "")
+        if VerCompare(v, '>' vi) && (vi != "" || VerCompare(v, '>' verMax) && VerCompare(v, '>' vm '-b')) {
             verToSuggest := v
-            break ; Stop at the first version that's greater than the highest installed
+            if vi != ""
+                break ; Stop at the first version which is a bug-fix update for an installed version
         }
     }
 
