@@ -159,10 +159,9 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
         if (RunWait(Format('"{}" /script "{}\install-version.ahk" "{}"', A_AhkPath, A_ScriptDir, this.newVersion))) {
             ; Error installing
         } else {
-            this.GetPos(,,, &h)
             this['UpdateLink'].Enabled := false
-            this['UpdateBanner'].GetPos(,,, &uh)
-            this.Show("h" . (h - uh))
+            this['UpdateBanner'].GetPos(, &top)
+            this.Show("h" top)
         }
     }
 }
