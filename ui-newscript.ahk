@@ -147,6 +147,9 @@ class NewScriptGui extends AutoHotkeyUxGui {
             FileOpen(newPath, 'w', 'UTF-8').Write(code)
         }
         
+        if FileExist(newPath)
+            DllCall("shell32\SHAddToRecentDocs", "uint", 3, "wstr", newPath)
+        
         if this.ExplorerHwnd && (xp := GetExplorerByHwnd(this.ExplorerHwnd))
             || dir = A_Desktop && (xp := GetExplorerForDesktop()) {
             SplitPath newPath, &basename

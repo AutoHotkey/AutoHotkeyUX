@@ -13,6 +13,9 @@ if !trace.Enabled := RegRead('HKCU\Software\AutoHotkey', 'Trace', false)
 
 #include config.ahk
 
+; This must match the ID set on the AutoHotkey Dash shortcut (for SHAddToRecentDocs):
+DllCall("shell32\SetCurrentProcessExplicitAppUserModelID", "wstr", "AutoHotkey.AutoHotkey")
+
 trace(s) {
     try
         FileAppend s "`n", "*"
