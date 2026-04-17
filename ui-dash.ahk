@@ -121,7 +121,8 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
     KeyPressed(lv, lParam) {
         switch NumGet(lParam, A_PtrSize * 3, "Short") {
         case 0x70: ; F1
-            ShowHelpFile()
+            lv.Modify(3, 'Focus Select')
+            this.ItemClicked(lv, 3)
         }
     }
     
@@ -142,7 +143,8 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
             else
                 Run Format('"{1}" /script "{2}\install-ahk2exe.ahk"', A_AhkPath, A_ScriptDir)
         case "Help":
-            ShowHelpFile()
+            lv.GetItemPos(item, &x, &y,, &h)
+            ShowHelpFile(x, y + h)
         case "Window":
             try {
                 Run '"' A_MyDocuments '\AutoHotkey\WindowSpy.ahk"'
@@ -176,7 +178,7 @@ class AutoHotkeyDashGui extends AutoHotkeyUxGui {
     }
 }
 
-ShowHelpFile() {
+ShowHelpFile(x?, y?) {
     SetWorkingDir ROOT_DIR
     main := Map(), sub := Map()
     other := Map(), other.CaseSense := "off"
@@ -231,7 +233,7 @@ ShowHelpFile() {
     for f, t in other
         m.Add t, openIt.Bind(f)
     
-    m.Show
+    m.Show(x?, y?)
     openIt(f, *) => Run(f)
 }
 

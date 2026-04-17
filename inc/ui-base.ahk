@@ -115,4 +115,16 @@ class UxListMenu extends Gui.ListView {
         h := NumGet(rect, 12, 'int') + 4
         ControlMove(,,, h, this)
     }
+    
+    GetItemPos(row, &x?, &y?, &w?, &h?) {
+        static LVM_GETITEMRECT := 0x100E
+        rect := Buffer(16, 0)
+        r := SendMessage(LVM_GETITEMRECT, row - 1, rect.ptr, this)
+        DllCall("MapWindowPoints", "uint", this.hwnd, "uint", this.Gui.hwnd, "ptr", rect, "int", 2)
+        x := NumGet(rect, 0, 'int')
+        y := NumGet(rect, 4, 'int')
+        w := NumGet(rect, 8, 'int') - x
+        h := NumGet(rect, 12, 'int') - y
+        return r
+    }
 }
